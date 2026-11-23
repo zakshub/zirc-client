@@ -4,9 +4,12 @@ import (
 	"bufio"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"sort"
 	"strings"
 	"syscall"
 	"time"
@@ -28,6 +31,9 @@ type model struct {
 	offset int
 	quitting bool
 	aliases map[string]string
+	inputHistory []string
+	historyIndex int
+	completionIndex int
 }
 
 func Run(cfg irc.Config) error {
@@ -38,7 +44,8 @@ func Run(cfg irc.Config) error {
 	client:=irc.NewClient(cfg)
 	if err:=client.Connect();err!=nil { return err }
 	defer func(){ if client!=nil { client.Close() } }()
-	m:=&model{client:client,identity:cfg,active:"status",channels:[]string{"status"},lines:map[string][]string{"status":{}},users:map[string][]string{},topics:map[string]string{},aliases:map[string]string{},status:"Connecting"}
+	m:=&model{client:client,identity:cfg,active:"status",channels:[]string{"status"},lines:map[string][]string{"status":{}},users:map[string][]string{},topics:map[string]string{},aliases:map[string]string{},historyIndex:-1,status:"Connecting"}
+	m.loadAliases()
 	if cfg.TLS { m.status="TLS enabled" }
 	if cfg.Proxy!="" { m.status+=" | SOCKS5 proxy configured; Tor not independently verified" } else { m.status+=" | DIRECT ROUTE: IRC server sees your public IP" }
 	fmt.Print("\033[?1049h\033[?25l")
@@ -139,9 +146,11 @@ func (m *model)key(r rune)bool{
 	case 3:return true
 	case 13:
 		s:=strings.TrimSpace(m.input);m.input=""
-		if s!=""{m.command(s)}
+		if s!="" { if len(m.inputHistory)==0 || m.inputHistory[len(m.inputHistory)-1]!=s { m.inputHistory=append(m.inputHistory,s); if len(m.inputHistory)>500 { m.inputHistory=m.inputHistory[len(m.inputHistory)-500:] } }; m.historyIndex=-1; m.command(s) }
 	case 8,127:if len(m.input)>0{runes:=[]rune(m.input);m.input=string(runes[:len(runes)-1])}
-	case 9:if len(m.channels)>0{for i,ch:=range m.channels{if ch==m.active{m.active=m.channels[(i+1)%len(m.channels)];m.offset=0;break}}}
+	case 9: if m.input!="" { m.completeInput() } else if len(m.channels)>0 { for i,ch:=range m.channels{if ch==m.active{m.active=m.channels[(i+1)%len(m.channels)];m.offset=0;break}} }
+	case 16: m.recallHistory(-1)
+	case 14: m.recallHistory(1)
 	case 27:
 	default:if r>=32&&r!=127&&r!=27{m.input+=string(r)}
 	}
@@ -173,6 +182,14 @@ func (m *model)commandDepth(s string,depth int){
 		case "/names":if m.active!="status"{m.client.Send("NAMES",m.active)}
 		case "/topic":if m.active!="status"{if len(p)>1{body:=strings.TrimSpace(strings.TrimPrefix(s,p[0]+" "));m.client.Send("TOPIC",m.active,body)}else{m.client.Send("TOPIC",m.active)}}
 		case "/invite":if len(p)>1&&m.active!="status"{m.client.Send("INVITE",p[1],m.active)}
+		case "/kick":
+			if m.active=="status" || len(p)<2 { m.add(m.active,"Usage: /kick nickname [reason]"); return }; reason:="Removed by channel operator"; if len(p)>2 { reason=strings.TrimSpace(strings.TrimPrefix(s,p[0]+" "+p[1])) }; m.client.Send("KICK",m.active,p[1],reason)
+		case "/ban": if m.active=="status" || len(p)!=2 { m.add(m.active,"Usage: /ban nickname-or-mask"); return }; m.client.Send("MODE",m.active,"+b",p[1])
+		case "/unban": if m.active=="status" || len(p)!=2 { m.add(m.active,"Usage: /unban nickname-or-mask"); return }; m.client.Send("MODE",m.active,"-b",p[1])
+		case "/op": if m.active=="status" || len(p)!=2 { m.add(m.active,"Usage: /op nickname"); return }; m.client.Send("MODE",m.active,"+o",p[1])
+		case "/deop": if m.active=="status" || len(p)!=2 { m.add(m.active,"Usage: /deop nickname"); return }; m.client.Send("MODE",m.active,"-o",p[1])
+		case "/voice": if m.active=="status" || len(p)!=2 { m.add(m.active,"Usage: /voice nickname"); return }; m.client.Send("MODE",m.active,"+v",p[1])
+		case "/devoice": if m.active=="status" || len(p)!=2 { m.add(m.active,"Usage: /devoice nickname"); return }; m.client.Send("MODE",m.active,"-v",p[1])
 		case "/mode":if m.active!="status"{args:=append([]string{m.active},p[1:]...);m.client.Send("MODE",args...)}
 		case "/search":
 			if len(p)>1 {
@@ -197,9 +214,9 @@ func (m *model)commandDepth(s string,depth int){
 			if len(p)<3 { m.add("status","Usage: /alias name command-template"); return }
 			name:=strings.ToLower(p[1]); if !validAliasName(name) { m.add("status","! Alias name must start with a letter and contain only letters, numbers or underscore"); return }
 			template:=strings.TrimSpace(strings.TrimPrefix(s,p[0]+" "+p[1])); if !strings.HasPrefix(template,"/") { m.add("status","! Alias template must be a ZIRC command beginning with /"); return }
-			m.aliases[name]=template; m.add("status","* Alias saved for this session: "+name)
+			m.aliases[name]=template; if err:=m.saveAliases(); err!=nil { m.add("status","! Alias active but could not save configuration: "+err.Error()) } else { m.add("status","* Alias saved: "+name) }
 		case "/unalias":
-			if len(p)!=2 { m.add("status","Usage: /unalias name"); return }; name:=strings.ToLower(p[1]); if _,ok:=m.aliases[name];!ok { m.add("status","! No such alias: "+name) } else { delete(m.aliases,name);m.add("status","* Alias removed: "+name) }
+			if len(p)!=2 { m.add("status","Usage: /unalias name"); return }; name:=strings.ToLower(p[1]); if _,ok:=m.aliases[name];!ok { m.add("status","! No such alias: "+name) } else { delete(m.aliases,name); if err:=m.saveAliases(); err!=nil { m.add("status","! Alias removed for this session but config save failed: "+err.Error()) } else { m.add("status","* Alias removed: "+name) } }
 		case "/aliases":
 			if len(m.aliases)==0 { m.add("status","No aliases defined in this session") } else { for name,template:=range m.aliases { m.add("status","/"+name+" => "+template) } }
 		case "/clear":
@@ -209,7 +226,7 @@ func (m *model)commandDepth(s string,depth int){
 			if m.identity.Proxy!=""{route="SOCKS5 proxy configured. Tor is not independently verified."}
 			m.add("status","Identity: nick="+m.identity.Nick+" username="+m.identity.Username+" realname="+m.identity.RealName)
 			m.add("status","Transport: TLS="+fmt.Sprint(m.identity.TLS)+" | "+route)
-		case "/help":m.add("status","Commands: /join #channel | /nick name | /randomnick | /msg nick message | /query nick | /part | /names | /topic [text] | /invite nick | /mode [flags] | /whois nick | /who mask | /list [channel] | /away [message] | /notice target message | /me action | /search words | /alias name /command $1- | /unalias name | /aliases | /clear | /privacy | /quit")
+		case "/help":m.add("status","Commands: /join #channel | /nick name | /randomnick | /msg nick message | /query nick | /part | /names | /topic [text] | /invite nick | /mode [flags] | /kick nick [reason] | /ban mask | /unban mask | /op nick | /deop nick | /voice nick | /devoice nick | /whois nick | /who mask | /list [channel] | /away [message] | /notice target message | /me action | /search words | /alias name /command $1- | /unalias name | /aliases | /clear | /privacy | /quit")
 		default:m.add(m.active,"Unknown command. Type /help")
 		}
 		return
@@ -217,6 +234,62 @@ func (m *model)commandDepth(s string,depth int){
 	if m.active=="status"{m.add("status","Join a channel first with /join #channel");return}
 	m.client.Send("PRIVMSG",m.active,s);m.add(m.active,"<you> "+s)
 }
+
+func (m *model) recallHistory(direction int) {
+	if len(m.inputHistory)==0 { return }
+	if m.historyIndex<0 { if direction<0 { m.historyIndex=len(m.inputHistory)-1 } else { return } } else { m.historyIndex+=direction }
+	if m.historyIndex<0 { m.historyIndex=0 }
+	if m.historyIndex>=len(m.inputHistory) { m.historyIndex=-1; m.input=""; return }
+	m.input=m.inputHistory[m.historyIndex]
+}
+
+func (m *model) completeInput() {
+	if m.input=="" { return }
+	candidates:=[]string{}
+	if strings.HasPrefix(m.input,"/") {
+		commands:=[]string{"/join","/nick","/randomnick","/msg","/query","/part","/names","/topic","/invite","/mode","/kick","/ban","/unban","/op","/deop","/voice","/devoice","/whois","/who","/list","/away","/notice","/me","/search","/alias","/unalias","/aliases","/clear","/privacy","/help","/quit"}
+		for _,v:=range commands { if strings.HasPrefix(v,strings.ToLower(m.input)) { candidates=append(candidates,v) } }
+		for name:=range m.aliases { v:="/"+name; if strings.HasPrefix(v,strings.ToLower(m.input)) { candidates=append(candidates,v) } }
+	} else {
+		prefix:=m.input
+		if i:=strings.LastIndexAny(prefix," ,"); i>=0 { prefix=prefix[i+1:] }
+		for _,v:=range m.users[m.active] { if strings.HasPrefix(strings.ToLower(v),strings.ToLower(prefix)) { candidates=append(candidates,v) } }
+		for _,v:=range m.channels { if strings.HasPrefix(strings.ToLower(v),strings.ToLower(prefix)) { candidates=append(candidates,v) } }
+	}
+	if len(candidates)==0 { return }
+	sort.Strings(candidates)
+	m.completionIndex=(m.completionIndex+1)%len(candidates)
+	choice:=candidates[m.completionIndex]
+	if strings.HasPrefix(m.input,"/") { m.input=choice+" " } else if i:=strings.LastIndexAny(m.input," ,"); i>=0 { m.input=m.input[:i+1]+choice } else { m.input=choice }
+}
+
+func (m *model) aliasPath() (string,error) {
+	dir,err:=os.UserConfigDir(); if err!=nil { return "",err }
+	return filepath.Join(dir,"zirc","aliases.json"),nil
+}
+
+func (m *model) loadAliases() {
+	path,err:=m.aliasPath(); if err!=nil { m.add("status","! Cannot locate user config directory: "+err.Error()); return }
+	data,err:=os.ReadFile(path); if os.IsNotExist(err) { return }; if err!=nil { m.add("status","! Cannot read aliases: "+err.Error()); return }
+	var loaded map[string]string
+	if err=json.Unmarshal(data,&loaded); err!=nil { m.add("status","! Alias config is invalid JSON: "+err.Error()); return }
+	for name,template:=range loaded {
+		if !validAliasName(name) || !strings.HasPrefix(template,"/") { continue }
+		m.aliases[name]=template
+	}
+}
+
+func (m *model) saveAliases() error {
+	path,err:=m.aliasPath(); if err!=nil { return err }
+	dir:=filepath.Dir(path)
+	if err=os.MkdirAll(dir,0700); err!=nil { return err }
+	data,err:=json.MarshalIndent(m.aliases,"","  "); if err!=nil { return err }
+	tmp:=path+".tmp"
+	if err=os.WriteFile(tmp,data,0600); err!=nil { return err }
+	if err=os.Rename(tmp,path); err!=nil { _=os.Remove(tmp); return err }
+	return nil
+}
+
 func (m *model)removeChannel(ch string){
 	out:=m.channels[:0];for _,x:=range m.channels{if x!=ch{out=append(out,x)}};m.channels=out
 	delete(m.lines,ch);delete(m.users,ch);delete(m.topics,ch)
