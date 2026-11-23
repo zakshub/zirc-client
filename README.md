@@ -91,7 +91,7 @@ For Linux desktop environments, ZIRC can retrieve secrets from the Secret Servic
 - `/invite nickname` invites a user to the active channel.
 - `/mode [flags]` sends a channel MODE command.
 - `/randomnick` requests a cryptographically random nickname.
-- `/privacy` displays the current identity and route summary.
+- `/search words` searches the active in-memory conversation buffer. Results are not saved to disk.\n- `/privacy` displays the current identity and route summary.
 - `/part` leaves the active channel.
 - `/help` lists commands.
 - Ctrl+C or `/quit` exits.
