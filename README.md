@@ -53,7 +53,7 @@ Current proxy support is unauthenticated SOCKS5 only. Do not use a proxy you do 
 ## TUI controls
 
 - Type a message and press Enter to send it to the active channel.
-- Tab cycles through the status view, channels and private conversations.
+- Tab cycles through the status view and known channel labels. The prototype currently uses a shared transcript rather than separate per-channel buffers.
 - `/join #channel` joins a channel.
 - `/nick nickname` changes your nickname.
 - `/msg nickname message` sends a private message.
