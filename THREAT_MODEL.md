@@ -22,7 +22,7 @@
 | Threat | Mitigation |
 | --- | --- |
 | Network eavesdropping | TLS with certificate validation |
-| IRC server sees origin IP | Tor or SOCKS5 routing, or server cloak |
+| IRC server sees origin IP | Tor or SOCKS5 routing. A server cloak only hides the host from other users, not network operators. |
 | DNS leakage | Resolve destination through proxy |
 | Credential disclosure | No plaintext secrets; OS keyring integration planned |
 | Local chat exposure | Logging off by default; encrypted history only if enabled |
