@@ -3,13 +3,12 @@ package desktop
 import (
 	"fmt"
 	"strings"
-	"sync"
 	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
-		"fyne.io/fyne/v2/widget"
+	"fyne.io/fyne/v2/widget"
 	"github.com/zakshub/zirc-client/internal/irc"
 )
 
@@ -23,7 +22,6 @@ type workspace struct {
 	transcript map[string][]string
 	members    map[string][]string
 	topics     map[string]string
-	mu         sync.RWMutex
 
 	navigation *widget.List
 	memberList *widget.List
