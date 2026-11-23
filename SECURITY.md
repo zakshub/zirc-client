@@ -23,7 +23,7 @@ ZIRC aims to reduce accidental identity disclosure. It cannot guarantee anonymit
 7. SOCKS5 proxy mode sends the destination hostname to the proxy for name resolution.
 8. A selected proxy failure does not trigger direct connection fallback.
 9. SASL PLAIN is rejected unless TLS is enabled.
-10. Proxy and SASL passwords are read from named environment variables, not command line arguments.
+10. Proxy and SASL passwords can be retrieved from the Linux Secret Service keyring. Environment variable sources are also supported and are never command line arguments.
 11. The interface distinguishes a direct route from a configured SOCKS5 route and does not label an unverified proxy as Tor.
 
 ## Known limitations
