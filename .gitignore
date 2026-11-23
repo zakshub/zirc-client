@@ -1,0 +1,10 @@
+zirc
+*.log
+.env
+.env.*
+*.db
+*.sqlite
+*.sqlite3
+config.local.*
+.DS_Store
+dist/
