@@ -72,7 +72,7 @@ func main(){
 	if *preview {
 		route:="DIRECT: IRC server can see your public IP"
 		if *proxy!=""{route="SOCKS5 proxy configured; proxy operator can see your source IP; Tor is not independently verified"}
-		fmt.Printf("ZIRC identity preview\nServer: %s\nNickname: %s\nUsername: %s\nReal name: %s\nTLS: %t\nRoute: %s\n",*server,*nick,*username,*realname,*tlsOn,route)
+		fmt.Printf("ZIRC identity preview\nServer: %s\nNickname: %s\nUsername: %s\nReal name: %s\nTLS: %t\nSASL account: %s\nRoute: %s\n",*server,*nick,*username,*realname,*tlsOn,*saslUser,route)
 		if *server==""{fmt.Fprintln(os.Stderr,"Set --server to connect after reviewing this identity.") ;os.Exit(2)}
 		return
 	}
