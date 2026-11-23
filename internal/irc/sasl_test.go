@@ -9,7 +9,7 @@ import (
 func TestSASLPlainNegotiation(t *testing.T) {
 	c:=NewClient(Config{Nick:"tester",SASLUser:"account",SASLPass:"private"})
 	c.handleCAP(Message{Params:[]string{"*","LS"},Trailing:"multi-prefix sasl=PLAIN"})
-	if got:=<-c.write;got!="CAP REQ :sasl"{t.Fatalf("unexpected capability request: %s",got)}
+	if got:=<-c.write;got!="CAP REQ sasl"{t.Fatalf("unexpected capability request: %s",got)}
 	c.handleCAP(Message{Params:[]string{"*","ACK"},Trailing:"sasl"})
 	if got:=<-c.write;got!="AUTHENTICATE PLAIN"{t.Fatalf("unexpected SASL mechanism: %s",got)}
 	c.saslNegotiating=true
