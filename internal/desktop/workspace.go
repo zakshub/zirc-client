@@ -33,6 +33,7 @@ type workspace struct {
 	status     *widget.Label
 	navItems   []string
 	memberRows []string
+	disconnectBtn *widget.Button
 }
 
 func New(w fyne.Window) *workspace {
@@ -60,12 +61,12 @@ func (d *workspace) build() {
 	subtitle := widget.NewLabel("Classic IRC workspace")
 	subtitle.Importance = widget.LowImportance
 	connect := widget.NewButton("Connect", d.showConnect)
-	disconnect := widget.NewButton("Disconnect", d.disconnect)
-	disconnect.Disable()
+	d.disconnectBtn = widget.NewButton("Disconnect", d.disconnect)
+	d.disconnectBtn.Disable()
 	d.status = widget.NewLabel("Disconnected")
 	d.status.Importance = widget.LowImportance
 
-	header := container.NewBorder(nil, nil, container.NewHBox(title, subtitle), container.NewHBox(d.status, connect, disconnect), widget.NewSeparator())
+	header := container.NewBorder(nil, nil, container.NewHBox(title, subtitle), container.NewHBox(d.status, connect, d.disconnectBtn), widget.NewSeparator())
 
 	d.navItems = append([]string(nil), d.channels...)
 	d.navigation = widget.NewList(
@@ -203,6 +204,7 @@ func (d *workspace) connect(cfg irc.Config) {
 			d.client = client
 			d.config = cfg
 			d.connected = true
+			d.disconnectBtn.Enable()
 			d.status.SetText("Connected to " + cfg.Address)
 			for _, ch := range cfg.Channels { d.addChannel(ch) }
 			d.append("Status", fmt.Sprintf("* Connected to %s as %s", cfg.Address, cfg.Nick))
@@ -222,6 +224,7 @@ func (d *workspace) readEvents(client *irc.Client) {
 			fyne.Do(func() {
 				if d.client == client {
 					d.connected = false
+					d.disconnectBtn.Disable()
 					d.status.SetText("Disconnected")
 					d.append("Status", "* Disconnected from " + d.config.Address)
 					d.refresh()
@@ -237,6 +240,7 @@ func (d *workspace) disconnect() {
 		client := d.client
 		d.client = nil
 		d.connected = false
+		if d.disconnectBtn != nil { d.disconnectBtn.Disable() }
 		client.Close()
 		d.status.SetText("Disconnected")
 		d.append("Status", "* Disconnected")
