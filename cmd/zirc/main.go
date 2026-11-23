@@ -32,6 +32,8 @@ func main(){
 	proxy:=flag.String("proxy","","SOCKS5 proxy host:port; no direct fallback")
 	proxyUser:=flag.String("proxy-user","","SOCKS5 username")
 	passwordEnv:=flag.String("proxy-password-env","","Environment variable containing SOCKS5 password; never pass password as an argument")
+	saslUser:=flag.String("sasl-user","","IRC SASL PLAIN account username")
+	saslPasswordEnv:=flag.String("sasl-password-env","","Environment variable containing SASL password; never pass password as an argument")
 	realname:=flag.String("realname","ZIRC User","IRC real name")
 	preview:=flag.Bool("identity-preview",false,"Print the connection identity and route before connecting")
 	flag.Var(&channels,"join","Channel to join; repeatable")
@@ -48,6 +50,10 @@ func main(){
 		password=os.Getenv(*passwordEnv)
 		if password==""{fmt.Fprintln(os.Stderr,"The configured proxy password environment variable is empty or unavailable.");os.Exit(2)}
 	}
+	saslPassword:=""
+	if *saslPasswordEnv!="" { saslPassword=os.Getenv(*saslPasswordEnv);if saslPassword==""{fmt.Fprintln(os.Stderr,"The configured SASL password environment variable is empty or unavailable.");os.Exit(2)} }
+	if (*saslUser=="")!=(saslPassword=="") { fmt.Fprintln(os.Stderr,"SASL requires both --sasl-user and --sasl-password-env.");os.Exit(2) }
+	if saslPassword!="" && !*tlsOn { fmt.Fprintln(os.Stderr,"SASL PLAIN requires TLS to protect credentials in transit.");os.Exit(2) }
 	if (*proxyUser=="")!=(password=="") {
 		fmt.Fprintln(os.Stderr,"SOCKS5 authentication requires both --proxy-user and --proxy-password-env.")
 		os.Exit(2)
@@ -71,6 +77,6 @@ func main(){
 		fmt.Fprintln(os.Stderr,"Usage: zirc --server irc.example.net:6697 --tls --proxy 127.0.0.1:9050 --random-nick")
 		os.Exit(2)
 	}
-	cfg:=irc.Config{Address:*server,Nick:*nick,Username:*username,RealName:*realname,TLS:*tlsOn,Proxy:*proxy,ProxyUser:*proxyUser,ProxyPass:password,Channels:channels}
+	cfg:=irc.Config{Address:*server,Nick:*nick,Username:*username,RealName:*realname,TLS:*tlsOn,Proxy:*proxy,ProxyUser:*proxyUser,ProxyPass:password,SASLUser:*saslUser,SASLPass:saslPassword,Channels:channels}
 	if err:=app.Run(cfg);err!=nil{fmt.Fprintln(os.Stderr,"zirc:",err);os.Exit(1)}
 }
