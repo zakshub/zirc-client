@@ -6,7 +6,7 @@ ZIRC connects to existing IRC networks. It does not operate an IRC network or se
 
 ## Implemented prototype capabilities
 
-- Full screen keyboard driven Linux TUI with CJK, combining mark and joined emoji cell width handling
+- Full screen keyboard driven Linux TUI
 - IRC registration, channel messages, private conversations and per channel buffers
 - Channel member list, topics, NAMES refresh, invites and MODE commands
 - TLS with certificate verification and TLS 1.2 minimum
@@ -14,10 +14,14 @@ ZIRC connects to existing IRC networks. It does not operate an IRC network or se
 - IRCv3 capability negotiation and SASL PLAIN over TLS
 - Random local nickname generation and configurable username and real name
 - Identity and route preview before connecting
-- Proxy and SASL passwords accepted through environment variables, not command line arguments
-- No telemetry, message logging, DCC, or automatic link fetching
-- Direct versus configured SOCKS5 route status shown in the TUI\n- Bounded automatic reconnect attempts using the original configured route, with exponential backoff and no direct fallback
-- IRC parser fuzz seed tests included in CI
+- Linux Secret Service keyring lookup and explicit secret deletion through secret-tool
+- Optional environment variable credential source
+- In memory search of the active conversation buffer
+- Bounded automatic reconnect using the original configured route, with exponential backoff and no direct fallback
+- CJK, combining mark and common joined emoji terminal cell width handling
+- Short IRC parser fuzz campaigns in CI
+- No telemetry, persistent chat logging, DCC, or automatic link fetching
+- Direct versus configured SOCKS5 route status shown in the TUI
 
 This remains an early prototype. It is not security audited and is not feature complete.
 
@@ -27,7 +31,7 @@ TLS encrypts traffic but does not hide your IP address from the IRC server. To h
 
 ZIRC can confirm that a SOCKS5 proxy connection was used. It cannot independently prove that the proxy is Tor. A proxy operator can observe your source IP and destination. Tor does not protect against account correlation, endpoint compromise, global traffic correlation, or identifying information you disclose in chat.
 
-When a proxy is selected, ZIRC fails closed if the proxy connection fails. It does not fall back to a direct connection.
+When a proxy is selected, ZIRC fails closed if the proxy connection fails. Automatic reconnect reuses that same configured route. It never falls back to a direct connection.
 
 ## Build
 
@@ -55,29 +59,35 @@ Route through a locally running Tor SOCKS5 service, commonly 127.0.0.1:9050:
 
 This confirms use of a SOCKS5 endpoint only. It does not verify that the endpoint is Tor. The SOCKS5 implementation sends the IRC server hostname to the proxy for name resolution and does not locally resolve that hostname.
 
-SOCKS5 supports no authentication and RFC 1929 username/password authentication. The latter is not encrypted between the client and proxy. Use it only with a trusted local proxy or a separately protected tunnel.
+SOCKS5 username/password authentication is not encrypted between the client and proxy. Use it only with a trusted local proxy or a separately protected tunnel.
 
-Identity preview without connecting:
+## Credential storage
 
-```bash
-./zirc --server irc.libera.chat:6697 --random-nick --identity-preview --tls --proxy 127.0.0.1:9050
-```
+For Linux desktop environments, ZIRC can retrieve secrets from the Secret Service keyring through secret-tool from the libsecret-tools package.
 
-Proxy authentication:
+Store a SASL password interactively:
 
 ```bash
-export ZIRC_PROXY_PASSWORD='your-proxy-password'
-./zirc --server irc.example.net:6697 --proxy 127.0.0.1:9050 --proxy-user account --proxy-password-env ZIRC_PROXY_PASSWORD
+sudo apt install libsecret-tools
+secret-tool store --label='ZIRC SASL' service zirc-client account sasl:account
 ```
 
-SASL PLAIN authentication:
+Connect using the stored secret:
 
 ```bash
-export ZIRC_SASL_PASSWORD='your-account-password'
-./zirc --server irc.example.net:6697 --tls --sasl-user account --sasl-password-env ZIRC_SASL_PASSWORD
+./zirc --server irc.example.net:6697 --tls --sasl-user account --sasl-password-keyring
 ```
 
-For Linux desktop environments, ZIRC can retrieve secrets from the Secret Service keyring through `secret-tool` from the `libsecret-tools` package. Store a secret interactively, then let ZIRC retrieve it without placing the secret in command arguments or shell history. Example for SASL:\n\n\`\`\`bash\nsudo apt install libsecret-tools\nsecret-tool store --label='ZIRC SASL' service zirc-client account sasl:account\n./zirc --server irc.example.net:6697 --tls --sasl-user account --sasl-password-keyring\n\`\`\`\n\nFor SOCKS5, use account `proxy:username` and run with `--proxy-user username --proxy-password-keyring`. Remove stored secrets with `--forget-sasl-password --sasl-user account` or `--forget-proxy-password --proxy-user username`. Keyring integration currently targets Linux Secret Service. Environment variables remain available as an alternative, but are not a secure vault.
+For SOCKS5, store the secret under account proxy:username and run with --proxy-user username --proxy-password-keyring.
+
+Remove stored secrets:
+
+```bash
+./zirc --forget-sasl-password --sasl-user account
+./zirc --forget-proxy-password --proxy-user username
+```
+
+Keyring integration currently targets Linux Secret Service. Environment variables remain available as an alternative, but they are not a secure vault and may be visible to privileged local processes.
 
 ## TUI controls
 
@@ -91,24 +101,24 @@ For Linux desktop environments, ZIRC can retrieve secrets from the Secret Servic
 - `/invite nickname` invites a user to the active channel.
 - `/mode [flags]` sends a channel MODE command.
 - `/randomnick` requests a cryptographically random nickname.
-- `/search words` searches the active in-memory conversation buffer. Results are not saved to disk.\n- `/privacy` displays the current identity and route summary.
+- `/search words` searches the active in memory conversation buffer. Results are not saved to disk.
+- `/privacy` displays the current identity and route summary.
 - `/part` leaves the active channel.
 - `/help` lists commands.
 - Ctrl+C or `/quit` exits.
 
 ## Not yet implemented
 
-- OS keyring integration and secret lifecycle controls
-- Optional encrypted local history and searchable history
 - Multiple simultaneous IRC networks
-- Automatic reconnect and connection diagnostics
 - Desktop notifications
-- Full Unicode terminal display cell width handling
 - Dedicated interactive privacy settings screen
-- Independent Tor route verification
-- Expanded automated DNS and connection leak testing
-- Broad protocol fuzz campaigns and independent security review
+- Independent Tor route verification and automated DNS or connection leak tests
+- Optional encrypted persistent history
+- Native macOS and Windows keyring integration
+- More extensive connection diagnostics and user controlled retry settings
+- Sustained fuzz campaigns and dedicated SOCKS5 handshake fuzzing
 - Verified tagged release execution
+- Independent security audit
 
 ## Security
 
