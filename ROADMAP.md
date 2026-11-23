@@ -3,53 +3,54 @@
 ## Milestone 1: Linux terminal foundation
 
 - [x] Go project structure and CLI flags
-- [x] Full-screen keyboard-driven Linux TUI
+- [x] Full screen keyboard driven Linux TUI
 - [x] IRC registration and basic message exchange
 - [x] TLS with certificate verification
-- [x] SOCKS5 proxy routing
-- [x] Proxy-side destination hostname resolution
+- [x] SOCKS5 proxy routing and proxy side destination DNS
 - [x] Privacy and threat model documentation
 - [x] Protocol parser tests
-- [x] SOCKS5 remote DNS test
 - [x] GitHub Actions build and test workflow
 
 ## Milestone 2: Privacy and identity controls
 
-- [ ] Dedicated privacy settings screen
-- [ ] Dedicated interactive privacy settings screen
 - [x] CLI identity preview before connecting
-- [x] Random locally generated nick option
-- [x] Configurable username and realname minimisation
-- [ ] Explicit Tor route profile and independent route verification
+- [x] Random nickname generation
+- [x] Configurable username and generic real name
 - [x] SOCKS5 username/password authentication
-- [ ] Expanded connection leak and DNS behaviour test suite
-- [x] Prevent accidental direct fallback when proxy is selected
+- [x] Fail closed when selected proxy is unavailable
+- [x] Explicit direct route and proxy route status
+- [ ] Dedicated interactive privacy settings screen
+- [ ] Tor route profile diagnostics and independent verification limits
+- [ ] Automated DNS and connection leak test suite
 
 ## Milestone 3: Authentication and local protection
 
 - [x] IRCv3 capability negotiation
 - [x] SASL PLAIN authentication over TLS
-- [ ] OS keyring integration for secrets
-- [x] Proxy and SASL secrets are accepted through environment variables rather than command line arguments
-- [ ] OS keyring and secret lifecycle controls
+- [x] Passwords accepted through environment variables rather than command line arguments
+- [ ] OS keyring integration and secret lifecycle controls
 - [ ] Optional encrypted local history
-- [ ] Secure config file permissions
+- [ ] Secure local configuration file permissions, if configuration files are introduced
 
 ## Milestone 4: Full IRC usability
 
-- [ ] Multiple network connections
-- [x] Channel and user list panels
+- [x] Separate channel and private conversation buffers
+- [x] Channel member list and NAMES refresh
 - [x] Topics, modes and invites
+- [ ] Multiple simultaneous IRC network connections
 - [ ] Desktop notifications
-- [ ] Searchable in-memory history
-- [x] Unicode rune input and rune-safe clipping
-- [ ] Terminal display-cell width handling for wide glyphs
-- [ ] Reconnect policy and connection diagnostics
+- [ ] Searchable history
+- [ ] Terminal display cell width handling for wide and combining glyphs
+- [ ] Automatic reconnect and connection diagnostics
 
-## Milestone 5: Release engineering
+## Milestone 5: Release engineering and assurance
 
-- [ ] Linux packages and reproducible release builds
-- [ ] Signed release checksums
-- [ ] Security review
-- [ ] Fuzz testing of IRC and SOCKS5 parsers
-- [ ] Documented threat model review
+- [x] Linux AMD64 and ARM64 release workflow defined
+- [x] SHA256 checksum generation defined
+- [x] Keyless Sigstore checksum signing defined
+- [ ] Execute and verify a real tagged release
+- [x] IRC protocol fuzz test harness added to CI seed corpus
+- [ ] Sustained fuzz campaigns for IRC and SOCKS5 parsers
+- [ ] Expanded network leak testing
+- [ ] Independent security review
+- [ ] Documented threat model review after security review
