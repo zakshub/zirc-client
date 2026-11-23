@@ -24,3 +24,15 @@ func TestChannelMembersAndTopic(t *testing.T) {
 	m.handle(irc.Event{Kind:"part",Target:"#one",Nick:"bob"})
 	if contains(m.users["#one"],"bob"){t.Fatal("parted user remains in member list")}
 }
+
+func TestSearchLinesIsCaseInsensitiveAndBounded(t *testing.T) {
+	lines := []string{"hello world", "another line", "HELLO again", "hello third"}
+	got := searchLines(lines, "Hello", 2)
+	if len(got) != 2 { t.Fatalf("expected two results, got %#v", got) }
+	if got[0] != "[1] hello world" || got[1] != "[3] HELLO again" {
+		t.Fatalf("unexpected search results: %#v", got)
+	}
+	if got := searchLines(lines, "missing", 10); len(got) != 0 {
+		t.Fatalf("expected no results, got %#v", got)
+	}
+}
