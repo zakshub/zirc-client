@@ -258,8 +258,9 @@ func (m *model) completeInput() {
 	}
 	if len(candidates)==0 { return }
 	sort.Strings(candidates)
-	m.completionIndex=(m.completionIndex+1)%len(candidates)
+	m.completionIndex=m.completionIndex%len(candidates)
 	choice:=candidates[m.completionIndex]
+	m.completionIndex++
 	if strings.HasPrefix(m.input,"/") { m.input=choice+" " } else if i:=strings.LastIndexAny(m.input," ,"); i>=0 { m.input=m.input[:i+1]+choice } else { m.input=choice }
 }
 
