@@ -28,7 +28,7 @@ ZIRC aims to reduce accidental identity disclosure. It cannot guarantee anonymit
 
 ## Known limitations
 
-- Secrets are not stored in an OS keyring. Environment variables are not a secure secret vault.
+- Linux Secret Service keyring lookup and explicit delete commands are implemented through `secret-tool`. Other operating systems do not yet have native keyring integration. Environment variables remain an optional fallback and are not a secure secret vault.
 - SOCKS5 username/password authentication does not encrypt credentials on the client to proxy leg.
 - The application has not undergone an independent security audit.
 - Automated leak testing and broad fuzzing remain incomplete.
