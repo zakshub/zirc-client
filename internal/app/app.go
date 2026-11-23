@@ -172,12 +172,26 @@ func (m *model)command(s string){
 				m.add("status",fmt.Sprintf("Search in %s for %q: %d match(es)",m.active,query,len(matches)))
 				for _,match:=range matches { m.add("status",match) }
 			} else { m.add("status","Usage: /search words") }
+		case "/whois":
+			if len(p)>1 { m.client.Send("WHOIS",p[1]) } else { m.add(m.active,"Usage: /whois nickname") }
+		case "/who":
+			if len(p)>1 { m.client.Send("WHO",p[1]) } else if m.active!="status" { m.client.Send("WHO",m.active) } else { m.add("status","Usage: /who nickname-or-mask") }
+		case "/list":
+			if len(p)>1 { m.client.Send("LIST",p[1]) } else { m.client.Send("LIST") }
+		case "/away":
+			if len(p)>1 { m.client.Send("AWAY",strings.TrimSpace(strings.TrimPrefix(s,p[0]+" "))) } else { m.client.Send("AWAY") }
+		case "/notice":
+			if len(p)>2 { target:=p[1]; body:=strings.TrimSpace(strings.TrimPrefix(s,p[0]+" "+target)); m.client.Send("NOTICE",target,body); m.add("status","-> notice sent to "+target) } else { m.add(m.active,"Usage: /notice nickname-or-channel message") }
+		case "/me":
+			if m.active!="status" && len(p)>1 { body:=strings.TrimSpace(strings.TrimPrefix(s,p[0]+" ")); m.client.Send("PRIVMSG",m.active,"\x01ACTION "+body+"\x01"); m.add(m.active,"* "+m.identity.Nick+" "+body) } else { m.add(m.active,"Usage: /me action") }
+		case "/clear":
+			m.lines[m.active]=nil
 		case "/privacy":
 			route:="DIRECT. IRC server sees your public IP."
 			if m.identity.Proxy!=""{route="SOCKS5 proxy configured. Tor is not independently verified."}
 			m.add("status","Identity: nick="+m.identity.Nick+" username="+m.identity.Username+" realname="+m.identity.RealName)
 			m.add("status","Transport: TLS="+fmt.Sprint(m.identity.TLS)+" | "+route)
-		case "/help":m.add("status","Commands: /join #channel | /nick name | /randomnick | /msg nick message | /query nick | /part | /names | /topic [text] | /invite nick | /mode [flags] | /search words | /privacy | /quit")
+		case "/help":m.add("status","Commands: /join #channel | /nick name | /randomnick | /msg nick message | /query nick | /part | /names | /topic [text] | /invite nick | /mode [flags] | /whois nick | /who mask | /list [channel] | /away [message] | /notice target message | /me action | /search words | /clear | /privacy | /quit")
 		default:m.add(m.active,"Unknown command. Type /help")
 		}
 		return
