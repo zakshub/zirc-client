@@ -16,20 +16,22 @@
 ## Milestone 2: Privacy and identity controls
 
 - [ ] Dedicated privacy settings screen
-- [ ] Identity preview before connecting
-- [ ] Random locally generated nick option
-- [ ] Configurable username and realname minimisation
-- [ ] Explicit Tor route profile and route status
-- [ ] SOCKS5 username/password authentication
-- [ ] Connection leak and DNS behaviour test suite
-- [ ] Prevent accidental direct fallback when proxy is selected
+- [ ] Dedicated interactive privacy settings screen
+- [x] CLI identity preview before connecting
+- [x] Random locally generated nick option
+- [x] Configurable username and realname minimisation
+- [ ] Explicit Tor route profile and independent route verification
+- [x] SOCKS5 username/password authentication
+- [ ] Expanded connection leak and DNS behaviour test suite
+- [x] Prevent accidental direct fallback when proxy is selected
 
 ## Milestone 3: Authentication and local protection
 
-- [ ] IRCv3 capability negotiation
-- [ ] SASL authentication
+- [x] IRCv3 capability negotiation
+- [x] SASL PLAIN authentication over TLS
 - [ ] OS keyring integration for secrets
-- [ ] No secrets in command history or process arguments
+- [x] Proxy and SASL secrets are accepted through environment variables rather than command line arguments
+- [ ] OS keyring and secret lifecycle controls
 - [ ] Optional encrypted local history
 - [ ] Secure config file permissions
 
