@@ -11,7 +11,6 @@ import (
 	"syscall"
 	"time"
 	"unicode"
-	"unicode/utf8"
 
 	"github.com/zakshub/zirc-client/internal/irc"
 )
