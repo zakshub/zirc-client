@@ -86,7 +86,7 @@ func Run(cfg irc.Config) error {
 				m.status="Reconnected through the configured route"
 				m.add("status","* "+m.status)
 			}
-		case <-tick.C:m.draw()
+		case <-tick.C:if m.quitting{return nil};m.draw()
 		}
 	}
 }
