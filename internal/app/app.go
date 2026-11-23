@@ -29,7 +29,7 @@ func Run(cfg irc.Config) error {
 	defer client.Close()
 	m:=&model{client:client,active:"status",channels:[]string{"status"},status:"Connecting"}
 	if cfg.TLS {m.status="TLS enabled"}
-	if cfg.Proxy!="" {m.status+=" | SOCKS5 proxy configured"} else {m.status+=" | DIRECT ROUTE: IRC server sees your public IP"}
+	if cfg.Proxy!="" {m.status+=" | SOCKS5 proxy configured; Tor not independently verified"} else {m.status+=" | DIRECT ROUTE: IRC server sees your public IP"}
 	fmt.Print("\033[?1049h\033[?25l")
 	defer fmt.Print("\033[?25h\033[?1049l")
 	keys:=make(chan byte,128)
