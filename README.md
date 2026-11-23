@@ -8,7 +8,7 @@ ZIRC is an independent IRC client. It connects to existing IRC networks. It does
 
 ZIRC is designed to minimise identity disclosure and make network routing visible and explicit.
 
-Important: TLS encrypts traffic but does not hide your IP address from the IRC server. IP masking requires a network supplied cloak, Tor, or a correctly configured proxy. ZIRC must never claim an IP is hidden unless the selected route is actually active.
+Important: TLS encrypts traffic but does not hide your IP address from the IRC server. To hide your public IP from the IRC server, route through Tor or a trusted proxy. An IRC host cloak generally hides your address from other users, not from network operators. ZIRC must never claim an IP is hidden unless the selected proxy route is active.
 
 ## Planned protections
 
