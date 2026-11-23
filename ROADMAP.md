@@ -39,7 +39,7 @@
 - [x] Topics, modes and invites
 - [ ] Multiple simultaneous IRC network connections
 - [ ] Desktop notifications
-- [ ] Searchable history
+- [x] Search within active in-memory conversation buffer\n- [ ] Persistent searchable history
 - [ ] Terminal display cell width handling for wide and combining glyphs
 - [ ] Automatic reconnect and connection diagnostics
 
