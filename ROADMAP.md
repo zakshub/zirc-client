@@ -27,30 +27,34 @@
 
 - [x] IRCv3 capability negotiation
 - [x] SASL PLAIN authentication over TLS
-- [x] Passwords accepted through environment variables rather than command line arguments
-- [x] Linux Secret Service keyring lookup and explicit secret deletion\n- [ ] Native macOS and Windows keyring integration
-- [ ] Optional encrypted local history
-- [ ] Secure local configuration file permissions, if configuration files are introduced
+- [x] Linux Secret Service keyring lookup and explicit secret deletion
+- [x] Environment variable credential source as an alternative
+- [ ] Native macOS and Windows keyring integration
+- [ ] Optional encrypted persistent history
 
 ## Milestone 4: Full IRC usability
 
 - [x] Separate channel and private conversation buffers
 - [x] Channel member list and NAMES refresh
 - [x] Topics, modes and invites
+- [x] Search within active in memory conversation buffer
+- [x] Bounded automatic reconnect with exponential backoff and same route enforcement
+- [x] Terminal display cell width handling for wide glyphs, combining marks and common joined emoji sequences
 - [ ] Multiple simultaneous IRC network connections
 - [ ] Desktop notifications
-- [x] Search within active in-memory conversation buffer\n- [ ] Persistent searchable history
-- [x] Terminal display cell width handling for wide glyphs, combining marks and common joined emoji sequences
-- [x] Bounded automatic reconnect with exponential backoff and same route enforcement\n- [ ] Detailed connection diagnostics and user controlled retry policy
+- [ ] Persistent searchable history
+- [ ] Dedicated interactive privacy settings screen
+- [ ] More detailed connection diagnostics and user controlled retry policy
 
 ## Milestone 5: Release engineering and assurance
 
 - [x] Linux AMD64 and ARM64 release workflow defined
 - [x] SHA256 checksum generation defined
 - [x] Keyless Sigstore checksum signing defined
-- [ ] Execute and verify a real tagged release
 - [x] IRC protocol fuzz test harness added to CI seed corpus
-- [x] Short CI fuzz campaigns for IRC line parsing and formatting\n- [ ] Sustained fuzz campaigns and dedicated SOCKS5 handshake fuzzing
+- [x] Short CI fuzz campaigns for IRC line parsing and formatting
+- [ ] Dedicated SOCKS5 handshake fuzzing and longer fuzz campaigns
 - [ ] Expanded network leak testing
+- [ ] Execute and verify a real tagged release
 - [ ] Independent security review
 - [ ] Documented threat model review after security review
