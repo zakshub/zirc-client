@@ -12,6 +12,8 @@ import (
 	"github.com/zakshub/zirc-client/internal/irc"
 )
 
+var version = "dev"
+
 type listFlag []string
 func (l *listFlag) String() string { return strings.Join(*l,",") }
 func (l *listFlag) Set(v string) error { *l=append(*l,v);return nil }
@@ -36,6 +38,7 @@ func main(){
 	saslPasswordEnv:=flag.String("sasl-password-env","","Environment variable containing SASL password; never pass password as an argument")
 	realname:=flag.String("realname","ZIRC User","IRC real name")
 	preview:=flag.Bool("identity-preview",false,"Print the connection identity and route before connecting")
+	showVersion:=flag.Bool("version",false,"Print ZIRC version")
 	flag.Var(&channels,"join","Channel to join; repeatable")
 	flag.Parse()
 
