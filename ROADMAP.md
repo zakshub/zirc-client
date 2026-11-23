@@ -28,7 +28,7 @@
 - [x] IRCv3 capability negotiation
 - [x] SASL PLAIN authentication over TLS
 - [x] Passwords accepted through environment variables rather than command line arguments
-- [ ] OS keyring integration and secret lifecycle controls
+- [x] Linux Secret Service keyring lookup and explicit secret deletion\n- [ ] Native macOS and Windows keyring integration
 - [ ] Optional encrypted local history
 - [ ] Secure local configuration file permissions, if configuration files are introduced
 
