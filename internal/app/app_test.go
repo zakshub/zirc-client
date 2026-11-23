@@ -1,7 +1,8 @@
 package app
 
 import (
-	"testing"\n\t"time"
+	"testing"
+	"time"
 
 	"github.com/zakshub/zirc-client/internal/irc"
 )
