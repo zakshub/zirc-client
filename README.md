@@ -1,39 +1,42 @@
 # ZIRC Client
 
-Privacy first, terminal native IRC client for Linux.
+Privacy conscious, terminal native IRC client for Linux.
 
-ZIRC is an independent IRC client. It connects to existing IRC networks. It does not operate an IRC network or server.
+ZIRC connects to existing IRC networks. It does not operate an IRC network or server.
 
-## Current prototype
+## Implemented prototype capabilities
 
 - Full screen keyboard driven Linux TUI
-- IRC registration, channel messages, private conversations and per-channel buffers
+- IRC registration, channel messages, private conversations and per channel buffers
 - Channel member list, topics, NAMES refresh, invites and MODE commands
-- TLS with certificate verification enabled by default
-- SOCKS5 proxy routing with proxy side destination DNS and optional username/password authentication
-- IRCv3 capability negotiation and SASL PLAIN authentication over TLS
-- Random local nickname generation and configurable username/real name
-- Identity and route preview before connection
-- Proxy credentials and SASL passwords read from environment variables, never command line arguments
+- TLS with certificate verification and TLS 1.2 minimum
+- SOCKS5 routing with proxy side destination DNS and optional username/password authentication
+- IRCv3 capability negotiation and SASL PLAIN over TLS
+- Random local nickname generation and configurable username and real name
+- Identity and route preview before connecting
+- Proxy and SASL passwords accepted through environment variables, not command line arguments
 - No telemetry, message logging, DCC, or automatic link fetching
-- Direct versus proxy route status shown in the TUI
+- Direct versus configured SOCKS5 route status shown in the TUI
+- IRC parser fuzz seed tests included in CI
 
-This is an early prototype, not yet a security audited or feature complete IRC client.
+This remains an early prototype. It is not security audited and is not feature complete.
 
 ## Privacy model
 
-TLS encrypts traffic but does not hide your IP address from the IRC server. To hide your public IP from the IRC server, route through Tor or a trusted proxy. An IRC host cloak generally hides your address from other users, not from network operators. ZIRC must never claim an IP is hidden unless the selected proxy route is active.
+TLS encrypts traffic but does not hide your IP address from the IRC server. To hide your public IP from the IRC server, route through Tor or a trusted proxy. An IRC host cloak generally hides your address from other users, not from network operators.
 
-A proxy operator can observe your source IP and destination. Tor changes the trust model but does not protect against account correlation, endpoint compromise, or identifying information you disclose in chat.
+ZIRC can confirm that a SOCKS5 proxy connection was used. It cannot independently prove that the proxy is Tor. A proxy operator can observe your source IP and destination. Tor does not protect against account correlation, endpoint compromise, global traffic correlation, or identifying information you disclose in chat.
+
+When a proxy is selected, ZIRC fails closed if the proxy connection fails. It does not fall back to a direct connection.
 
 ## Build
 
 Requires Go 1.23 or newer.
 
 ```bash
-go test ./...
+go test -race ./...
 go vet ./...
-go build -o zirc ./cmd/zirc
+go build -trimpath -o zirc ./cmd/zirc
 ```
 
 ## Connect
@@ -44,15 +47,15 @@ Direct TLS connection. The IRC network can still see your public IP:
 ./zirc --server irc.libera.chat:6697 --tls --nick zirc-user
 ```
 
-Route through a locally running Tor SOCKS5 service, commonly 127.0.0.1:9050. ZIRC can confirm the SOCKS5 route, but cannot independently prove that the proxy is Tor:
+Route through a locally running Tor SOCKS5 service, commonly 127.0.0.1:9050:
 
 ```bash
 ./zirc --server irc.libera.chat:6697 --tls --proxy 127.0.0.1:9050 --nick zirc-user
 ```
 
-The SOCKS5 implementation sends the IRC server hostname to the proxy for name resolution. It does not locally resolve the IRC server hostname. If the selected proxy is unavailable, ZIRC fails the connection rather than falling back to a direct connection.
+This confirms use of a SOCKS5 endpoint only. It does not verify that the endpoint is Tor. The SOCKS5 implementation sends the IRC server hostname to the proxy for name resolution and does not locally resolve that hostname.
 
-SOCKS5 supports no-auth and RFC 1929 username/password modes. Proxy passwords are read from a named environment variable, not command line arguments. SOCKS5 username/password authentication is not encrypted between the client and proxy, so use it only with a trusted local proxy or a separately protected tunnel. A proxy route is not proof that the endpoint is Tor. Do not use a proxy you do not trust.
+SOCKS5 supports no authentication and RFC 1929 username/password authentication. The latter is not encrypted between the client and proxy. Use it only with a trusted local proxy or a separately protected tunnel.
 
 Identity preview without connecting:
 
@@ -60,26 +63,26 @@ Identity preview without connecting:
 ./zirc --server irc.libera.chat:6697 --random-nick --identity-preview --tls --proxy 127.0.0.1:9050
 ```
 
-Use SOCKS5 authentication without exposing the password in shell history or process arguments:
+Proxy authentication:
 
 ```bash
 export ZIRC_PROXY_PASSWORD='your-proxy-password'
 ./zirc --server irc.example.net:6697 --proxy 127.0.0.1:9050 --proxy-user account --proxy-password-env ZIRC_PROXY_PASSWORD
 ```
 
-SASL PLAIN authentication is available on TLS connections. Store the password in an environment variable and pass only its variable name:
+SASL PLAIN authentication:
 
 ```bash
 export ZIRC_SASL_PASSWORD='your-account-password'
 ./zirc --server irc.example.net:6697 --tls --sasl-user account --sasl-password-env ZIRC_SASL_PASSWORD
 ```
 
-Environment variables are not a substitute for an OS keyring and may be visible to privileged local processes. Keyring support remains planned.
+Environment variables are not a substitute for an OS keyring. They may be visible to privileged local processes and can persist in a shell session. Avoid placing literal secrets in shell history.
 
 ## TUI controls
 
 - Type a message and press Enter to send it to the active channel.
-- Tab cycles through the status view and known channel labels. Each channel and private conversation has its own transcript buffer.
+- Tab cycles through the status view and known channel labels.
 - `/join #channel` joins a channel.
 - `/nick nickname` changes your nickname.
 - `/msg nickname message` or `/query nickname` opens a private conversation.
@@ -93,32 +96,23 @@ Environment variables are not a substitute for an OS keyring and may be visible 
 - `/help` lists commands.
 - Ctrl+C or `/quit` exits.
 
-## Implemented privacy protections
+## Not yet implemented
 
-- TLS certificate validation
-- SOCKS5 proxy route with remote hostname resolution
-- No direct connection fallback when proxy connection fails
-- Generic real name and username defaults
-- No telemetry
-- No message logging
-- No DCC implementation
-- No automatic link previews or remote content requests
-- Explicit direct route warning
-
-## Planned privacy work
-
-- Dedicated privacy settings screen and identity preview
-- Random nickname generation
-- SOCKS5 authentication
-- Tor route verification and diagnostics
-- IRCv3 and SASL authentication
-- OS keyring integration
-- Optional encrypted local history
-- Fuzzing and independent security review
+- OS keyring integration and secret lifecycle controls
+- Optional encrypted local history and searchable history
+- Multiple simultaneous IRC networks
+- Automatic reconnect and connection diagnostics
+- Desktop notifications
+- Full Unicode terminal display cell width handling
+- Dedicated interactive privacy settings screen
+- Independent Tor route verification
+- Expanded automated DNS and connection leak testing
+- Broad protocol fuzz campaigns and independent security review
+- Verified tagged release execution
 
 ## Security
 
-Read [SECURITY.md](SECURITY.md), [PRIVACY.md](PRIVACY.md), and [THREAT_MODEL.md](THREAT_MODEL.md). This prototype has not undergone an independent security audit. Do not use it for high risk communications until the remaining security work and review are complete.
+Read [SECURITY.md](SECURITY.md), [PRIVACY.md](PRIVACY.md), and [THREAT_MODEL.md](THREAT_MODEL.md). Do not use this prototype for high risk communications until a qualified independent security review has been completed.
 
 ## License
 
