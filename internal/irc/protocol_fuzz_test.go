@@ -28,7 +28,7 @@ func FuzzParseLine(f *testing.F) {
 
 func FuzzFormatValidate(f *testing.F) {
 	f.Add("PRIVMSG", "#channel", "hello world")
-	f.Add("NICK", "zirc-user")
+	f.Add("NICK", "zirc-user", "")
 	f.Add("NOTICE", "nick", "")
 	f.Add("PRIVMSG", "#x", "line\r\ninjection")
 	f.Fuzz(func(t *testing.T, command, target, body string) {
