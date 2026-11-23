@@ -42,7 +42,8 @@
 - [x] Topics, modes and invites
 - [ ] Desktop notifications
 - [ ] Searchable in-memory history
-- [ ] Unicode-aware terminal editing and rendering
+- [x] Unicode rune input and rune-safe clipping
+- [ ] Terminal display-cell width handling for wide glyphs
 - [ ] Reconnect policy and connection diagnostics
 
 ## Milestone 5: Release engineering
