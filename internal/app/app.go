@@ -227,25 +227,31 @@ func pad(s string,n int)string {
 	return s+strings.Repeat(" ",n-displayWidth(s))
 }
 
-func displayWidth(s string) int {
-	width:=0
-	joined:=false
-	regional:=0
-	for _,r:=range s {
-		if r==0x200d { joined=true; continue }
-		if r>=0x1f1e6 && r<=0x1f1ff {
-			if regional%2==0 { width+=2 }
-			regional++
-			joined=false
-			continue
-		}
-		regional=0
-		w:=runeCellWidth(r)
-		if joined && w==2 { joined=false; continue }
-		joined=false
-		width+=w
+type cellWidthState struct {
+	width int
+	joined bool
+	regional int
+}
+
+func (s *cellWidthState) add(r rune) {
+	if r==0x200d { s.joined=true; return }
+	if r>=0x1f1e6 && r<=0x1f1ff {
+		if s.regional%2==0 { s.width+=2 }
+		s.regional++
+		s.joined=false
+		return
 	}
-	return width
+	s.regional=0
+	w:=runeCellWidth(r)
+	if s.joined && w==2 { s.joined=false; return }
+	s.joined=false
+	s.width+=w
+}
+
+func displayWidth(s string) int {
+	var state cellWidthState
+	for _,r:=range s { state.add(r) }
+	return state.width
 }
 
 func runeCellWidth(r rune) int {
@@ -273,9 +279,12 @@ func isWideRune(r rune) bool {
 func truncateCells(s string,limit int) string {
 	if limit<=0 { return "" }
 	var b strings.Builder
+	var state cellWidthState
 	for _,r:=range s {
-		candidate:=b.String()+string(r)
-		if displayWidth(candidate)>limit { break }
+		next:=state
+		next.add(r)
+		if next.width>limit { break }
+		state=next
 		b.WriteRune(r)
 	}
 	return b.String()
