@@ -27,6 +27,7 @@ type model struct {
 	status string
 	offset int
 	quitting bool
+	aliases map[string]string
 }
 
 func Run(cfg irc.Config) error {
@@ -37,7 +38,7 @@ func Run(cfg irc.Config) error {
 	client:=irc.NewClient(cfg)
 	if err:=client.Connect();err!=nil { return err }
 	defer func(){ if client!=nil { client.Close() } }()
-	m:=&model{client:client,identity:cfg,active:"status",channels:[]string{"status"},lines:map[string][]string{"status":{}},users:map[string][]string{},topics:map[string]string{},status:"Connecting"}
+	m:=&model{client:client,identity:cfg,active:"status",channels:[]string{"status"},lines:map[string][]string{"status":{}},users:map[string][]string{},topics:map[string]string{},aliases:map[string]string{},status:"Connecting"}
 	if cfg.TLS { m.status="TLS enabled" }
 	if cfg.Proxy!="" { m.status+=" | SOCKS5 proxy configured; Tor not independently verified" } else { m.status+=" | DIRECT ROUTE: IRC server sees your public IP" }
 	fmt.Print("\033[?1049h\033[?25l")
@@ -146,9 +147,17 @@ func (m *model)key(r rune)bool{
 	}
 	return false
 }
-func (m *model)command(s string){
+func (m *model)command(s string){ m.commandDepth(s,0) }
+
+func (m *model)commandDepth(s string,depth int){
 	if strings.HasPrefix(s,"/"){
 		p:=strings.Fields(s);if len(p)==0{return}
+		commandName:=strings.ToLower(strings.TrimPrefix(p[0],"/"))
+		if template,ok:=m.aliases[commandName];ok {
+			if depth>=5 { m.add(m.active,"! Alias expansion stopped at five levels"); return }
+			expanded,err:=expandAlias(template,p[1:]); if err!=nil { m.add(m.active,"! Alias expansion failed: "+err.Error()); return }
+			m.commandDepth(expanded,depth+1); return
+		}
 		switch strings.ToLower(p[0]){
 		case "/quit":m.quitting=true;m.client.Close()
 		case "/join":if len(p)>1{m.client.Send("JOIN",p[1]);m.ensureChannel(p[1]);m.active=p[1]}
@@ -184,6 +193,15 @@ func (m *model)command(s string){
 			if len(p)>2 { target:=p[1]; body:=strings.TrimSpace(strings.TrimPrefix(s,p[0]+" "+target)); m.client.Send("NOTICE",target,body); m.add("status","-> notice sent to "+target) } else { m.add(m.active,"Usage: /notice nickname-or-channel message") }
 		case "/me":
 			if m.active!="status" && len(p)>1 { body:=strings.TrimSpace(strings.TrimPrefix(s,p[0]+" ")); m.client.Send("PRIVMSG",m.active,"\x01ACTION "+body+"\x01"); m.add(m.active,"* "+m.identity.Nick+" "+body) } else { m.add(m.active,"Usage: /me action") }
+		case "/alias":
+			if len(p)<3 { m.add("status","Usage: /alias name command-template"); return }
+			name:=strings.ToLower(p[1]); if !validAliasName(name) { m.add("status","! Alias name must start with a letter and contain only letters, numbers or underscore"); return }
+			template:=strings.TrimSpace(strings.TrimPrefix(s,p[0]+" "+p[1])); if !strings.HasPrefix(template,"/") { m.add("status","! Alias template must be a ZIRC command beginning with /"); return }
+			m.aliases[name]=template; m.add("status","* Alias saved for this session: "+name)
+		case "/unalias":
+			if len(p)!=2 { m.add("status","Usage: /unalias name"); return }; name:=strings.ToLower(p[1]); if _,ok:=m.aliases[name];!ok { m.add("status","! No such alias: "+name) } else { delete(m.aliases,name);m.add("status","* Alias removed: "+name) }
+		case "/aliases":
+			if len(m.aliases)==0 { m.add("status","No aliases defined in this session") } else { for name,template:=range m.aliases { m.add("status","/"+name+" => "+template) } }
 		case "/clear":
 			m.lines[m.active]=nil
 		case "/privacy":
@@ -191,7 +209,7 @@ func (m *model)command(s string){
 			if m.identity.Proxy!=""{route="SOCKS5 proxy configured. Tor is not independently verified."}
 			m.add("status","Identity: nick="+m.identity.Nick+" username="+m.identity.Username+" realname="+m.identity.RealName)
 			m.add("status","Transport: TLS="+fmt.Sprint(m.identity.TLS)+" | "+route)
-		case "/help":m.add("status","Commands: /join #channel | /nick name | /randomnick | /msg nick message | /query nick | /part | /names | /topic [text] | /invite nick | /mode [flags] | /whois nick | /who mask | /list [channel] | /away [message] | /notice target message | /me action | /search words | /clear | /privacy | /quit")
+		case "/help":m.add("status","Commands: /join #channel | /nick name | /randomnick | /msg nick message | /query nick | /part | /names | /topic [text] | /invite nick | /mode [flags] | /whois nick | /who mask | /list [channel] | /away [message] | /notice target message | /me action | /search words | /alias name /command $1- | /unalias name | /aliases | /clear | /privacy | /quit")
 		default:m.add(m.active,"Unknown command. Type /help")
 		}
 		return
