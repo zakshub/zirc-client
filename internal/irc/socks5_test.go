@@ -7,19 +7,42 @@ import (
 	"testing"
 )
 
-func TestSOCKS5UsesProxySideDNS(t *testing.T) {
+func runSOCKS5Test(t *testing.T, username,password string) {
+	t.Helper()
 	listener,err:=net.Listen("tcp","127.0.0.1:0")
-	if err!=nil {t.Fatal(err)}
+	if err!=nil{t.Fatal(err)}
 	defer listener.Close()
 	serverErr:=make(chan error,1)
 	go func(){
 		conn,e:=listener.Accept()
-		if e!=nil {serverErr<-e;return}
+		if e!=nil{serverErr<-e;return}
 		defer conn.Close()
-		greeting:=make([]byte,3)
+		greeting:=make([]byte,4)
+		if username=="" {greeting=make([]byte,3)}
 		if _,e=io.ReadFull(conn,greeting);e!=nil{serverErr<-e;return}
-		if greeting[0]!=5||greeting[1]!=1||greeting[2]!=0{serverErr<-io.ErrUnexpectedEOF;return}
-		_,e=conn.Write([]byte{5,0});if e!=nil{serverErr<-e;return}
+		if greeting[0]!=5 {serverErr<-io.ErrUnexpectedEOF;return}
+		if username=="" {
+			if greeting[1]!=1||greeting[2]!=0{serverErr<-io.ErrUnexpectedEOF;return}
+			_,e=conn.Write([]byte{5,0})
+		} else {
+			if greeting[1]!=2||greeting[2]!=0||greeting[3]!=2{serverErr<-io.ErrUnexpectedEOF;return}
+			_,e=conn.Write([]byte{5,2})
+			if e==nil {
+				h:=make([]byte,2);_,e=io.ReadFull(conn,h)
+				if e==nil {
+					u:=make([]byte,int(h[1]));_,e=io.ReadFull(conn,u)
+					if e==nil {
+						p:=[]byte{0};_,e=io.ReadFull(conn,p)
+						if e==nil {
+							pw:=make([]byte,int(p[0]));_,e=io.ReadFull(conn,pw)
+							if e==nil&&(string(u)!=username||string(pw)!=password){e=io.ErrUnexpectedEOF}
+						}
+					}
+				}
+			}
+			if e==nil{_,e=conn.Write([]byte{1,0})}
+		}
+		if e!=nil{serverErr<-e;return}
 		head:=make([]byte,5)
 		if _,e=io.ReadFull(conn,head);e!=nil{serverErr<-e;return}
 		if head[0]!=5||head[1]!=1||head[3]!=3{serverErr<-io.ErrUnexpectedEOF;return}
@@ -27,13 +50,23 @@ func TestSOCKS5UsesProxySideDNS(t *testing.T) {
 		if _,e=io.ReadFull(conn,name);e!=nil{serverErr<-e;return}
 		port:=make([]byte,2)
 		if _,e=io.ReadFull(conn,port);e!=nil{serverErr<-e;return}
-		if string(name)!="irc.example.invalid"{serverErr<-io.ErrUnexpectedEOF;return}
-		if binary.BigEndian.Uint16(port)!=6697{serverErr<-io.ErrUnexpectedEOF;return}
+		if string(name)!="irc.example.invalid"||binary.BigEndian.Uint16(port)!=6697{serverErr<-io.ErrUnexpectedEOF;return}
 		_,e=conn.Write([]byte{5,0,0,1,127,0,0,1,0,1})
 		serverErr<-e
 	}()
-	conn,err:=dialSOCKS5(&net.Dialer{},listener.Addr().String(),"irc.example.invalid:6697")
+	conn,err:=dialSOCKS5(&net.Dialer{},listener.Addr().String(),"irc.example.invalid:6697",username,password)
 	if err!=nil{t.Fatal(err)}
 	_ = conn.Close()
 	if err=<-serverErr;err!=nil{t.Fatal(err)}
+}
+
+func TestSOCKS5UsesProxySideDNS(t *testing.T){runSOCKS5Test(t,"","")}
+func TestSOCKS5UsernamePasswordAuthentication(t *testing.T){runSOCKS5Test(t,"proxy-user","secret-value")}
+
+func TestSOCKS5RejectsIncompleteCredentials(t *testing.T) {
+	listener,err:=net.Listen("tcp","127.0.0.1:0")
+	if err!=nil{t.Fatal(err)}
+	defer listener.Close()
+	_,err=dialSOCKS5(&net.Dialer{},listener.Addr().String(),"irc.example.invalid:6697","user","")
+	if err==nil{t.Fatal("expected incomplete credentials to be rejected")}
 }
