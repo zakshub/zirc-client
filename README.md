@@ -9,9 +9,12 @@ ZIRC is an independent IRC client. It connects to existing IRC networks. It does
 - Full screen keyboard driven Linux TUI
 - IRC registration, channels and basic messages
 - TLS with certificate verification enabled by default
-- SOCKS5 proxy routing with proxy side destination DNS
+- SOCKS5 proxy routing with proxy side destination DNS and optional username/password authentication
+- IRCv3 capability negotiation and SASL PLAIN authentication over TLS
+- Random local nickname generation and configurable username/real name
+- Identity and route preview before connection
+- Proxy credentials and SASL passwords read from environment variables, never command line arguments
 - No telemetry, message logging, DCC, or automatic link fetching
-- Generic real name and username defaults
 - Direct versus proxy route status shown in the TUI
 
 This is an early prototype, not yet a security audited or feature complete IRC client.
@@ -40,7 +43,7 @@ Direct TLS connection. The IRC network can still see your public IP:
 ./zirc --server irc.libera.chat:6697 --tls --nick zirc-user
 ```
 
-Route through a locally running Tor SOCKS5 service, commonly 127.0.0.1:9050:
+Route through a locally running Tor SOCKS5 service, commonly 127.0.0.1:9050. ZIRC can confirm the SOCKS5 route, but cannot independently prove that the proxy is Tor:
 
 ```bash
 ./zirc --server irc.libera.chat:6697 --tls --proxy 127.0.0.1:9050 --nick zirc-user
@@ -48,7 +51,29 @@ Route through a locally running Tor SOCKS5 service, commonly 127.0.0.1:9050:
 
 The SOCKS5 implementation sends the IRC server hostname to the proxy for name resolution. It does not locally resolve the IRC server hostname. If the selected proxy is unavailable, ZIRC fails the connection rather than falling back to a direct connection.
 
-Current proxy support is unauthenticated SOCKS5 only. Do not use a proxy you do not trust.
+SOCKS5 supports no-auth and RFC 1929 username/password modes. Proxy passwords are read from a named environment variable, not command line arguments. A proxy route is not proof that the endpoint is Tor. Do not use a proxy you do not trust.
+
+Identity preview without connecting:
+
+```bash
+./zirc --server irc.libera.chat:6697 --random-nick --identity-preview --tls --proxy 127.0.0.1:9050
+```
+
+Use SOCKS5 authentication without exposing the password in shell history or process arguments:
+
+```bash
+export ZIRC_PROXY_PASSWORD='your-proxy-password'
+./zirc --server irc.example.net:6697 --proxy 127.0.0.1:9050 --proxy-user account --proxy-password-env ZIRC_PROXY_PASSWORD
+```
+
+SASL PLAIN authentication is available on TLS connections. Store the password in an environment variable and pass only its variable name:
+
+```bash
+export ZIRC_SASL_PASSWORD='your-account-password'
+./zirc --server irc.example.net:6697 --tls --sasl-user account --sasl-password-env ZIRC_SASL_PASSWORD
+```
+
+Environment variables are not a substitute for an OS keyring and may be visible to privileged local processes. Keyring support remains planned.
 
 ## TUI controls
 
