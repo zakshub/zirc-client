@@ -102,6 +102,13 @@ Keyring integration currently targets Linux Secret Service. Environment variable
 - `/mode [flags]` sends a channel MODE command.
 - `/randomnick` requests a cryptographically random nickname.
 - `/search words` searches the active in memory conversation buffer. Results are not saved to disk.
+- `/whois nickname` requests user information from the server.
+- `/who nickname-or-mask` requests a WHO lookup.
+- `/list [channel]` requests the channel list or a specific channel.
+- `/away [message]` sets or clears your away status.
+- `/notice target message` sends an IRC NOTICE.
+- `/me action` sends a CTCP ACTION to the active channel.
+- `/clear` clears the active buffer from the current session memory.
 - `/privacy` displays the current identity and route summary.
 - `/part` leaves the active channel.
 - `/help` lists commands.
