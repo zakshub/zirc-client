@@ -10,6 +10,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"unicode"
 	"unicode/utf8"
 
 	"github.com/zakshub/zirc-client/internal/irc"
@@ -213,7 +214,7 @@ func (m *model)draw(){
 			}
 			b.WriteString("\033[38;5;240m│\033[0m")
 		}
-		idx:=start+i;if idx<end{line:=lines[idx];if utf8.RuneCountInString(line)>bodyW{line=string([]rune(line)[:bodyW])};b.WriteString(line)}
+		idx:=start+i;if idx<end{line:=lines[idx];if displayWidth(line)>bodyW{line=truncateCells(line,bodyW)};b.WriteString(line)}
 		b.WriteString("\033[K\n")
 	}
 	b.WriteString("\033[38;5;240m"+strings.Repeat("─",w)+"\033[0m\n")
@@ -221,7 +222,65 @@ func (m *model)draw(){
 	b.WriteString("\033[38;5;245m Tab: switch view  /help: commands  Ctrl+C: quit\033[0m")
 	fmt.Print(b.String())
 }
-func pad(s string,n int)string{r:=[]rune(s);if len(r)>n{return string(r[:n])};return s+strings.Repeat(" ",n-len(r))}
+func pad(s string,n int)string {
+	if n<=0 { return "" }
+	s=truncateCells(s,n)
+	return s+strings.Repeat(" ",n-displayWidth(s))
+}
+
+func displayWidth(s string) int {
+	width:=0
+	joined:=false
+	regional:=0
+	for _,r:=range s {
+		if r==0x200d { joined=true; continue }
+		if r>=0x1f1e6 && r<=0x1f1ff {
+			if regional%2==0 { width+=2 }
+			regional++
+			joined=false
+			continue
+		}
+		regional=0
+		w:=runeCellWidth(r)
+		if joined && w==2 { joined=false; continue }
+		joined=false
+		width+=w
+	}
+	return width
+}
+
+func runeCellWidth(r rune) int {
+	if r==0 || unicode.IsControl(r) || unicode.Is(unicode.Mn,r) || unicode.Is(unicode.Me,r) || unicode.Is(unicode.Cf,r) { return 0 }
+	if r>=0xfe00 && r<=0xfe0f || r>=0xe0100 && r<=0xe01ef { return 0 }
+	if isWideRune(r) { return 2 }
+	return 1
+}
+
+func isWideRune(r rune) bool {
+	return r>=0x1100 && r<=0x115f ||
+		r==0x2329 || r==0x232a ||
+		r>=0x2e80 && r<=0xa4cf && r!=0x303f ||
+		r>=0xac00 && r<=0xd7a3 ||
+		r>=0xf900 && r<=0xfaff ||
+		r>=0xfe10 && r<=0xfe19 ||
+		r>=0xfe30 && r<=0xfe6f ||
+		r>=0xff00 && r<=0xff60 ||
+		r>=0xffe0 && r<=0xffe6 ||
+		r>=0x2600 && r<=0x27bf ||
+		r>=0x1f300 && r<=0x1faff ||
+		r>=0x20000 && r<=0x3fffd
+}
+
+func truncateCells(s string,limit int) string {
+	if limit<=0 { return "" }
+	var b strings.Builder
+	for _,r:=range s {
+		candidate:=b.String()+string(r)
+		if displayWidth(candidate)>limit { break }
+		b.WriteRune(r)
+	}
+	return b.String()
+}
 func max(a,b int)int{if a>b{return a};return b}
 
 func searchLines(lines []string, query string, limit int) []string {
