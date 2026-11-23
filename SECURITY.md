@@ -20,7 +20,7 @@ ZIRC aims to reduce accidental identity disclosure. It cannot guarantee anonymit
 6. No telemetry.
 7. No real name or email defaults that identify the user.
 8. Secrets must never be committed or printed to logs.
-9. SOCKS proxy mode must resolve hostnames through the proxy to reduce DNS leakage.
+9. SOCKS proxy mode must resolve hostnames through the proxy to reduce DNS leakage.\n10. SOCKS5 username/password authentication is cleartext on the client to proxy connection and must be limited to trusted local routes or separately protected tunnels.\n11. SASL PLAIN is accepted only when TLS is enabled.
 10. The UI must accurately disclose the active transport and routing mode.
 
 ## Reporting
