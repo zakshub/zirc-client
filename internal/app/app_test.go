@@ -52,3 +52,12 @@ func TestChannelTargetsExcludePrivateBuffers(t *testing.T) {
 	if len(got) != len(want) { t.Fatalf("got %#v, want %#v", got, want) }
 	for i := range want { if got[i] != want[i] { t.Fatalf("got %#v, want %#v", got, want) } }
 }
+
+func TestUnicodeTerminalCellWidths(t *testing.T) {
+	if got := displayWidth("A界B"); got != 4 { t.Fatalf("CJK width: got %d, want 4", got) }
+	if got := displayWidth("e\u0301"); got != 1 { t.Fatalf("combining mark width: got %d, want 1", got) }
+	if got := displayWidth("👨‍👩‍👧"); got != 2 { t.Fatalf("joined emoji width: got %d, want 2", got) }
+	if got := displayWidth("🇵🇰"); got != 2 { t.Fatalf("flag width: got %d, want 2", got) }
+	if got := truncateCells("A界B", 3); got != "A界" { t.Fatalf("unexpected cell truncation: %q", got) }
+	if got := pad("界", 4); got != "界  " { t.Fatalf("unexpected cell padding: %q", got) }
+}
