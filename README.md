@@ -17,6 +17,7 @@ ZIRC connects to existing IRC networks. It does not operate an IRC network or se
 - Linux Secret Service keyring lookup and explicit secret deletion through secret-tool
 - Optional environment variable credential source
 - In memory search of the active conversation buffer
+- Session only mIRC style command aliases with positional argument expansion and bounded recursion
 - Bounded automatic reconnect using the original configured route, with exponential backoff and no direct fallback
 - CJK, combining mark and common joined emoji terminal cell width handling
 - Short IRC parser fuzz campaigns in CI
@@ -108,6 +109,8 @@ Keyring integration currently targets Linux Secret Service. Environment variable
 - `/away [message]` sets or clears your away status.
 - `/notice target message` sends an IRC NOTICE.
 - `/me action` sends a CTCP ACTION to the active channel.
+- `/alias name /command $1-` creates a session only command alias. `$1` through `$9` insert positional arguments, `$1-` inserts the remaining arguments, `$*` inserts all arguments, and `$` inserts a literal dollar sign.
+- `/aliases` lists aliases and `/unalias name` removes one. Alias expansion is limited to five nested levels and cannot execute shell commands or access local files.
 - `/clear` clears the active buffer from the current session memory.
 - `/privacy` displays the current identity and route summary.
 - `/part` leaves the active channel.
