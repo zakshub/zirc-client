@@ -180,7 +180,9 @@ func (c *Client) handleCAP(m Message) {
 	sub:=strings.ToUpper(m.Params[1])
 	switch sub {
 	case "LS":
-		if strings.Contains(" "+m.Trailing+" "," sasl ") && c.cfg.SASLUser!="" {
+		hasSASL:=false
+		for _,capability:=range strings.Fields(m.Trailing) { if strings.HasPrefix(capability,"sasl") { hasSASL=true } }
+		if hasSASL && c.cfg.SASLUser!="" {
 			c.saslNegotiating=true
 			c.Send("CAP","REQ","sasl")
 		} else { c.Send("CAP","END") }
