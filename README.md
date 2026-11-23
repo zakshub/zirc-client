@@ -16,7 +16,7 @@ ZIRC connects to existing IRC networks. It does not operate an IRC network or se
 - Identity and route preview before connecting
 - Proxy and SASL passwords accepted through environment variables, not command line arguments
 - No telemetry, message logging, DCC, or automatic link fetching
-- Direct versus configured SOCKS5 route status shown in the TUI
+- Direct versus configured SOCKS5 route status shown in the TUI\n- Bounded automatic reconnect attempts using the original configured route, with exponential backoff and no direct fallback
 - IRC parser fuzz seed tests included in CI
 
 This remains an early prototype. It is not security audited and is not feature complete.
