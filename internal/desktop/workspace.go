@@ -87,7 +87,6 @@ func (d *workspace) build() {
 	d.log.Wrapping = fyne.TextWrapWord
 	d.log.TextStyle = fyne.TextStyle{Monospace: true}
 	logScroll := container.NewVScroll(d.log)
-	logScroll.SetMinSize(fyne.NewSize(560, 420))
 
 	d.composer = widget.NewEntry()
 	d.composer.SetPlaceHolder("Type a message or IRC command, then press Enter")
@@ -108,7 +107,6 @@ func (d *workspace) build() {
 	)
 	memberTitle := widget.NewLabelWithStyle("NICKNAMES", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	members := container.NewBorder(container.NewVBox(memberTitle, widget.NewSeparator()), nil, nil, nil, d.memberList)
-	members.SetMinSize(fyne.NewSize(160, 200))
 
 	right := container.NewHSplit(chat, members)
 	right.SetOffset(0.80)
@@ -123,7 +121,7 @@ func (d *workspace) menu() *fyne.MainMenu {
 	connect := fyne.NewMenuItem("Connect...", d.showConnect)
 	disconnect := fyne.NewMenuItem("Disconnect", d.disconnect)
 	quit := fyne.NewMenuItem("Quit", func() { d.disconnect(); d.window.Close() })
-	file := fyne.NewMenu("File", connect, disconnect, fyne.NewMenuItemSeparator(), quit)
+	file := fyne.NewMenu("File", connect, disconnect, quit)
 	join := fyne.NewMenuItem("Join channel...", d.showJoin)
 	leave := fyne.NewMenuItem("Leave active channel", func() { d.submit("/part") })
 	whois := fyne.NewMenuItem("Whois active nickname", func() {
