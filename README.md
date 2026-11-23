@@ -7,7 +7,8 @@ ZIRC is an independent IRC client. It connects to existing IRC networks. It does
 ## Current prototype
 
 - Full screen keyboard driven Linux TUI
-- IRC registration, channels and basic messages
+- IRC registration, channel messages, private conversations and per-channel buffers
+- Channel member list, topics, NAMES refresh, invites and MODE commands
 - TLS with certificate verification enabled by default
 - SOCKS5 proxy routing with proxy side destination DNS and optional username/password authentication
 - IRCv3 capability negotiation and SASL PLAIN authentication over TLS
@@ -78,10 +79,16 @@ Environment variables are not a substitute for an OS keyring and may be visible 
 ## TUI controls
 
 - Type a message and press Enter to send it to the active channel.
-- Tab cycles through the status view and known channel labels. The prototype currently uses a shared transcript rather than separate per-channel buffers.
+- Tab cycles through the status view and known channel labels. Each channel and private conversation has its own transcript buffer.
 - `/join #channel` joins a channel.
 - `/nick nickname` changes your nickname.
-- `/msg nickname message` sends a private message.
+- `/msg nickname message` or `/query nickname` opens a private conversation.
+- `/names` refreshes the active channel member list.
+- `/topic [text]` reads or changes the active channel topic.
+- `/invite nickname` invites a user to the active channel.
+- `/mode [flags]` sends a channel MODE command.
+- `/randomnick` requests a cryptographically random nickname.
+- `/privacy` displays the current identity and route summary.
 - `/part` leaves the active channel.
 - `/help` lists commands.
 - Ctrl+C or `/quit` exits.
