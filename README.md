@@ -25,6 +25,24 @@ Important: TLS encrypts traffic but does not hide your IP address from the IRC s
 - No automatic link previews or remote image fetching
 - Clear warnings when connecting without TLS or without an anonymising route
 
+## Connect
+
+Direct TLS connection (encrypted, but the IRC server can still see your public IP):
+
+```bash
+./zirc --server irc.libera.chat:6697 --tls --nick zirc-user
+```
+
+Route through a locally running Tor SOCKS5 service (commonly 127.0.0.1:9050):
+
+```bash
+./zirc --server irc.libera.chat:6697 --tls --proxy 127.0.0.1:9050 --nick zirc-user
+```
+
+The SOCKS5 implementation sends the IRC server hostname to the proxy for name resolution. This avoids local DNS lookup of the IRC destination. The proxy itself still knows the destination, and Tor or proxy routing does not protect against account correlation or information you disclose in chat.
+
+Current proxy support is unauthenticated SOCKS5 only. Do not use a proxy you do not trust.
+
 ## Build
 
 Requires Go 1.23 or newer.
