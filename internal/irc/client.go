@@ -2,6 +2,7 @@ package irc
 
 import (
 	"bufio"
+	"encoding/base64"
 	"crypto/tls"
 	"encoding/binary"
 	"fmt"
@@ -21,6 +22,8 @@ type Config struct {
 	Proxy string
 	ProxyUser string
 	ProxyPass string
+	SASLUser string
+	SASLPass string
 	Channels []string
 }
 
@@ -32,6 +35,8 @@ type Client struct {
 	events chan Event
 	done chan struct{}
 	once sync.Once
+	saslNegotiating bool
+	saslPayloadSent bool
 }
 
 func NewClient(cfg Config) *Client {
@@ -63,6 +68,7 @@ func (c *Client) Connect() error {
 	c.conn=conn
 	go c.writeLoop()
 	go c.readLoop()
+	if c.cfg.SASLUser!="" { c.Send("CAP","LS","302") }
 	c.Send("NICK",c.cfg.Nick)
 	c.Send("USER",c.cfg.Username,"0","*",c.cfg.RealName)
 	return nil
@@ -142,6 +148,18 @@ func (c *Client) readLoop(){
 		if m.Command=="PING"{c.Send("PONG",m.Trailing);continue}
 		nick:=m.Prefix;if i:=strings.IndexAny(nick,"!@");i>=0{nick=nick[:i]}
 		switch m.Command{
+		case "CAP":
+			c.handleCAP(m)
+		case "AUTHENTICATE":
+			if m.Trailing=="+" && c.saslNegotiating && !c.saslPayloadSent { c.sendSASLPlain() }
+		case "903":
+			c.saslNegotiating=false
+			c.Send("CAP","END")
+			c.emit(Event{Kind:"status",Text:"SASL authentication successful"})
+		case "904","905","906","907":
+			c.saslNegotiating=false
+			c.Send("CAP","END")
+			c.emit(Event{Kind:"error",Text:"SASL authentication failed; check credentials and network policy"})
 		case "001":
 			label:="Connected"
 			if c.cfg.TLS{label+=" over verified TLS"}
@@ -156,4 +174,29 @@ func (c *Client) readLoop(){
 	if err:=sc.Err();err!=nil{c.emit(Event{Kind:"error",Text:err.Error()})}
 	c.emit(Event{Kind:"status",Text:"Disconnected"})
 }
+
+func (c *Client) handleCAP(m Message) {
+	if len(m.Params)<2 { return }
+	sub:=strings.ToUpper(m.Params[1])
+	switch sub {
+	case "LS":
+		if strings.Contains(" "+m.Trailing+" "," sasl ") && c.cfg.SASLUser!="" {
+			c.saslNegotiating=true
+			c.Send("CAP","REQ","sasl")
+		} else { c.Send("CAP","END") }
+	case "ACK":
+		if strings.Contains(m.Trailing,"sasl") && c.cfg.SASLUser!="" { c.Send("AUTHENTICATE","PLAIN") } else { c.Send("CAP","END") }
+	case "NAK":
+		c.Send("CAP","END")
+		c.emit(Event{Kind:"error",Text:"IRC server rejected SASL capability request"})
+	}
+}
+func (c *Client) sendSASLPlain() {
+	payload:=base64.StdEncoding.EncodeToString([]byte(c.cfg.SASLUser+"\x00"+c.cfg.SASLUser+"\x00"+c.cfg.SASLPass))
+	for len(payload)>400 { c.Send("AUTHENTICATE",payload[:400]);payload=payload[400:] }
+	c.Send("AUTHENTICATE",payload)
+	if len(payload)==0 || len(payload)%400==0 { c.Send("AUTHENTICATE","+") }
+	c.saslPayloadSent=true
+}
+
 func (c *Client) emit(e Event){select{case c.events<-e:default:}}
