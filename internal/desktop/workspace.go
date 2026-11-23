@@ -64,7 +64,7 @@ func (d *workspace) build() {
 	d.status = widget.NewLabel("Disconnected")
 	d.status.Importance = widget.LowImportance
 
-	header := container.NewBorder(nil, nil, container.NewHBox(title, subtitle), container.NewHBox(d.status, connect, d.disconnectBtn), widget.NewSeparator())
+	header := container.NewVBox(container.NewBorder(nil, nil, container.NewHBox(title, subtitle), container.NewHBox(d.status, connect, d.disconnectBtn), nil), widget.NewSeparator())
 
 	d.navItems = append([]string(nil), d.channels...)
 	d.navigation = widget.NewList(
