@@ -151,7 +151,7 @@ func (c *Client) readLoop(){
 		case "CAP":
 			c.handleCAP(m)
 		case "AUTHENTICATE":
-			if m.Trailing=="+" && c.saslNegotiating && !c.saslPayloadSent { c.sendSASLPlain() }
+			if len(m.Params)>0 && m.Params[0]=="+" && c.saslNegotiating && !c.saslPayloadSent { c.sendSASLPlain() }
 		case "903":
 			c.saslNegotiating=false
 			c.Send("CAP","END")
