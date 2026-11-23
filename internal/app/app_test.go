@@ -3,6 +3,8 @@ package app
 import (
 	"testing"
 	"time"
+	"os"
+	"path/filepath"
 
 	"github.com/zakshub/zirc-client/internal/irc"
 )
@@ -60,4 +62,38 @@ func TestUnicodeTerminalCellWidths(t *testing.T) {
 	if got := displayWidth("🇵🇰"); got != 2 { t.Fatalf("flag width: got %d, want 2", got) }
 	if got := truncateCells("A界B", 3); got != "A界" { t.Fatalf("unexpected cell truncation: %q", got) }
 	if got := pad("界", 4); got != "界  " { t.Fatalf("unexpected cell padding: %q", got) }
+}
+
+func TestInputHistoryRecall(t *testing.T) {
+	m:=&model{inputHistory:[]string{"/join #one","hello"},historyIndex:-1}
+	m.recallHistory(-1)
+	if m.input!="hello" { t.Fatalf("expected newest command, got %q",m.input) }
+	m.recallHistory(-1)
+	if m.input!="/join #one" { t.Fatalf("expected previous command, got %q",m.input) }
+	m.recallHistory(1)
+	if m.input!="hello" { t.Fatalf("expected next command, got %q",m.input) }
+	m.recallHistory(1)
+	if m.input!="" || m.historyIndex!=-1 { t.Fatalf("expected blank input after newest history, got %q at %d",m.input,m.historyIndex) }
+}
+
+func TestTabCompletion(t *testing.T) {
+	m:=&model{input:"/jo",aliases:map[string]string{},channels:[]string{"status","#general"}}
+	m.completeInput()
+	if m.input!="/join " { t.Fatalf("expected /join completion, got %q",m.input) }
+	m=&model{input:"al",active:"#general",users:map[string][]string{"#general":{"alice","alex","bob"}},channels:[]string{"status","#general"},aliases:map[string]string{}}
+	m.completeInput()
+	if m.input!="alex" && m.input!="alice" { t.Fatalf("expected nickname completion, got %q",m.input) }
+}
+
+func TestAliasesPersistWithPrivateConfigPermissions(t *testing.T) {
+	configRoot:=t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME",configRoot)
+	m:=&model{aliases:map[string]string{"greet":"/msg $1 hello"}}
+	if err:=m.saveAliases(); err!=nil { t.Fatal(err) }
+	path:=filepath.Join(configRoot,"zirc","aliases.json")
+	info,err:=os.Stat(path); if err!=nil { t.Fatal(err) }
+	if info.Mode().Perm()!=0600 { t.Fatalf("alias file permissions are %o, want 600",info.Mode().Perm()) }
+	loaded:=&model{aliases:map[string]string{}}
+	loaded.loadAliases()
+	if loaded.aliases["greet"]!="/msg $1 hello" { t.Fatalf("alias was not restored: %#v",loaded.aliases) }
 }
