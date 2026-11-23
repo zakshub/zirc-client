@@ -168,7 +168,7 @@ func (c *Client) readLoop(){
 			for _,ch:=range c.cfg.Channels{c.Send("JOIN",ch)}
 		case "PRIVMSG":if len(m.Params)>0{c.emit(Event{Kind:"message",Target:m.Params[0],Nick:nick,Text:m.Trailing})}
 		case "NOTICE","JOIN","PART","QUIT","ERROR":c.emit(Event{Kind:"notice",Text:raw})
-		default:if strings.HasPrefix(m.Command,"4")||strings.HasPrefix(m.Command,"5"){c.emit(Event{Kind:"notice",Text:raw)}}
+		default:if strings.HasPrefix(m.Command,"4")||strings.HasPrefix(m.Command,"5"){c.emit(Event{Kind:"notice",Text:raw})}
 		}
 	}
 	if err:=sc.Err();err!=nil{c.emit(Event{Kind:"error",Text:err.Error()})}
