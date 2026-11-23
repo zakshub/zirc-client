@@ -130,12 +130,19 @@ func (m *model)command(s string){
 		case "/topic":if m.active!="status"{if len(p)>1{body:=strings.TrimSpace(strings.TrimPrefix(s,p[0]+" "));m.client.Send("TOPIC",m.active,body)}else{m.client.Send("TOPIC",m.active)}}
 		case "/invite":if len(p)>1&&m.active!="status"{m.client.Send("INVITE",p[1],m.active)}
 		case "/mode":if m.active!="status"{args:=append([]string{m.active},p[1:]...);m.client.Send("MODE",args...)}
+		case "/search":
+			if len(p)>1 {
+				query:=strings.TrimSpace(strings.TrimPrefix(s,p[0]))
+				matches:=searchLines(m.lines[m.active],query,20)
+				m.add("status",fmt.Sprintf("Search in %s for %q: %d match(es)",m.active,query,len(matches)))
+				for _,match:=range matches { m.add("status",match) }
+			} else { m.add("status","Usage: /search words") }
 		case "/privacy":
 			route:="DIRECT. IRC server sees your public IP."
 			if m.identity.Proxy!=""{route="SOCKS5 proxy configured. Tor is not independently verified."}
 			m.add("status","Identity: nick="+m.identity.Nick+" username="+m.identity.Username+" realname="+m.identity.RealName)
 			m.add("status","Transport: TLS="+fmt.Sprint(m.identity.TLS)+" | "+route)
-		case "/help":m.add("status","Commands: /join #channel | /nick name | /randomnick | /msg nick message | /query nick | /part | /names | /topic [text] | /invite nick | /mode [flags] | /privacy | /quit")
+		case "/help":m.add("status","Commands: /join #channel | /nick name | /randomnick | /msg nick message | /query nick | /part | /names | /topic [text] | /invite nick | /mode [flags] | /search words | /privacy | /quit")
 		default:m.add(m.active,"Unknown command. Type /help")
 		}
 		return
@@ -181,3 +188,16 @@ func (m *model)draw(){
 }
 func pad(s string,n int)string{r:=[]rune(s);if len(r)>n{return string(r[:n])};return s+strings.Repeat(" ",n-len(r))}
 func max(a,b int)int{if a>b{return a};return b}
+
+func searchLines(lines []string, query string, limit int) []string {
+	query = strings.ToLower(strings.TrimSpace(query))
+	if query == "" || limit <= 0 { return nil }
+	var matches []string
+	for i, line := range lines {
+		if strings.Contains(strings.ToLower(line), query) {
+			matches = append(matches, fmt.Sprintf("[%d] %s", i+1, line))
+			if len(matches) == limit { break }
+		}
+	}
+	return matches
+}
