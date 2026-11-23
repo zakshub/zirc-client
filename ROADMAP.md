@@ -40,6 +40,10 @@
 - [x] Search within active in memory conversation buffer
 - [x] Bounded automatic reconnect with exponential backoff and same route enforcement
 - [x] Terminal display cell width handling for wide glyphs, combining marks and common joined emoji sequences
+- [x] Persistent command aliases with bounded positional expansion
+- [x] IRC moderation commands: kick, ban, unban, op, deop, voice and devoice
+- [x] In memory command history and keyboard recall
+- [x] Tab completion for commands, aliases, nicknames and channels
 - [ ] Multiple simultaneous IRC network connections
 - [ ] Desktop notifications
 - [ ] Persistent searchable history
