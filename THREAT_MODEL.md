@@ -22,7 +22,7 @@
 | Threat | Mitigation | Residual risk |
 | --- | --- | --- |
 | Network eavesdropping | TLS with certificate validation | Traffic metadata remains observable |
-| IRC server sees origin IP | User configured SOCKS5 proxy or Tor endpoint | ZIRC does not verify Tor; proxy can see source IP |
+| IRC server sees origin IP | User configured SOCKS5 proxy or Tor endpoint | ZIRC does not verify Tor; proxy can see source IP. Automatic reconnect reuses the same configured route and does not fall back to direct |
 | DNS leakage | Destination hostname is sent to SOCKS5 proxy | No independent packet capture leak test yet |
 | Credential disclosure | Secrets are not command line arguments; SASL PLAIN requires TLS | Environment variables are not a keyring; SOCKS5 auth leg is not encrypted |
 | Local chat exposure | No persistent chat history | Messages remain visible in terminal and process memory |
