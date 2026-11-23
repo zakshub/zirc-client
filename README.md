@@ -77,7 +77,7 @@ export ZIRC_SASL_PASSWORD='your-account-password'
 ./zirc --server irc.example.net:6697 --tls --sasl-user account --sasl-password-env ZIRC_SASL_PASSWORD
 ```
 
-Environment variables are not a substitute for an OS keyring. They may be visible to privileged local processes and can persist in a shell session. Avoid placing literal secrets in shell history.
+For Linux desktop environments, ZIRC can retrieve secrets from the Secret Service keyring through `secret-tool` from the `libsecret-tools` package. Store a secret interactively, then let ZIRC retrieve it without placing the secret in command arguments or shell history. Example for SASL:\n\n\`\`\`bash\nsudo apt install libsecret-tools\nsecret-tool store --label='ZIRC SASL' service zirc-client account sasl:account\n./zirc --server irc.example.net:6697 --tls --sasl-user account --sasl-password-keyring\n\`\`\`\n\nFor SOCKS5, use account `proxy:username` and run with `--proxy-user username --proxy-password-keyring`. Remove stored secrets with `--forget-sasl-password --sasl-user account` or `--forget-proxy-password --proxy-user username`. Keyring integration currently targets Linux Secret Service. Environment variables remain available as an alternative, but are not a secure vault.
 
 ## TUI controls
 
