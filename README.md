@@ -52,7 +52,7 @@ Route through a locally running Tor SOCKS5 service, commonly 127.0.0.1:9050. ZIR
 
 The SOCKS5 implementation sends the IRC server hostname to the proxy for name resolution. It does not locally resolve the IRC server hostname. If the selected proxy is unavailable, ZIRC fails the connection rather than falling back to a direct connection.
 
-SOCKS5 supports no-auth and RFC 1929 username/password modes. Proxy passwords are read from a named environment variable, not command line arguments. A proxy route is not proof that the endpoint is Tor. Do not use a proxy you do not trust.
+SOCKS5 supports no-auth and RFC 1929 username/password modes. Proxy passwords are read from a named environment variable, not command line arguments. SOCKS5 username/password authentication is not encrypted between the client and proxy, so use it only with a trusted local proxy or a separately protected tunnel. A proxy route is not proof that the endpoint is Tor. Do not use a proxy you do not trust.
 
 Identity preview without connecting:
 
