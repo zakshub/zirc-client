@@ -41,6 +41,7 @@ func main(){
 	showVersion:=flag.Bool("version",false,"Print ZIRC version")
 	flag.Var(&channels,"join","Channel to join; repeatable")
 	flag.Parse()
+	if *showVersion { fmt.Println("ZIRC",version); return }
 
 	if *random {
 		generated,err:=randomNick()
