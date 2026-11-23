@@ -1,7 +1,7 @@
 package app
 
 import (
-	"testing"
+	"testing"\n\t"time"
 
 	"github.com/zakshub/zirc-client/internal/irc"
 )
@@ -35,4 +35,19 @@ func TestSearchLinesIsCaseInsensitiveAndBounded(t *testing.T) {
 	if got := searchLines(lines, "missing", 10); len(got) != 0 {
 		t.Fatalf("expected no results, got %#v", got)
 	}
+}
+
+func TestReconnectBackoffIsBounded(t *testing.T) {
+	want := []time.Duration{time.Second, 2*time.Second, 4*time.Second, 8*time.Second, 16*time.Second}
+	for i, expected := range want {
+		if got := reconnectDelay(i+1); got != expected { t.Fatalf("attempt %d: got %s, want %s", i+1, got, expected) }
+	}
+	if got := reconnectDelay(6); got != 16*time.Second { t.Fatalf("backoff cap changed: %s", got) }
+}
+
+func TestChannelTargetsExcludePrivateBuffers(t *testing.T) {
+	got := channelTargets([]string{"status", "#golang", "alice", "&local", "!safe", "+model"})
+	want := []string{"#golang", "&local", "!safe", "+model"}
+	if len(got) != len(want) { t.Fatalf("got %#v, want %#v", got, want) }
+	for i := range want { if got[i] != want[i] { t.Fatalf("got %#v, want %#v", got, want) } }
 }
