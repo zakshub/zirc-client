@@ -50,7 +50,7 @@
 - [x] Keyless Sigstore checksum signing defined
 - [ ] Execute and verify a real tagged release
 - [x] IRC protocol fuzz test harness added to CI seed corpus
-- [ ] Sustained fuzz campaigns for IRC and SOCKS5 parsers
+- [x] Short CI fuzz campaigns for IRC line parsing and formatting\n- [ ] Sustained fuzz campaigns and dedicated SOCKS5 handshake fuzzing
 - [ ] Expanded network leak testing
 - [ ] Independent security review
 - [ ] Documented threat model review after security review
