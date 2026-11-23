@@ -26,13 +26,13 @@ jobs:
       - name: Format Go sources
         run: gofmt -w cmd internal
       - name: Unit and fuzz seed tests
-        run: go test -race ./...
+        run: go test -race -tags ci ./...
       - name: Short IRC parser fuzz campaigns
         run: |
           go test ./internal/irc -run=^$ -fuzz=FuzzParseLine -fuzztime=5s
           go test ./internal/irc -run=^$ -fuzz=FuzzFormatValidate -fuzztime=5s
       - name: Static analysis
-        run: go vet ./...
+        run: go vet -tags ci ./...
       - name: Linux terminal build
         run: go build -trimpath -ldflags="-s -w" -o /tmp/zirc ./cmd/zirc
       - name: Linux desktop build
