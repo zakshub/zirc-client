@@ -62,3 +62,53 @@
 - [ ] Execute and verify a real tagged release
 - [ ] Independent security review
 - [ ] Documented threat model review after security review
+
+
+## Milestone 6: Desktop application foundation
+
+- [x] Add a separate desktop application entry point
+- [x] Introduce a reusable desktop workspace package
+- [x] Build a classic IRC layout with network and channel navigation
+- [x] Add server connection dialog with TLS selection
+- [x] Reuse the existing IRC protocol client for desktop connections
+- [x] Add transcript, topic, nickname list and message composer
+- [x] Add common IRC commands to the desktop composer
+- [x] Add Linux desktop build dependencies and CI build
+- [ ] Add multiple simultaneous network sessions
+- [ ] Persist server profiles and auto join settings
+- [ ] Add SASL and SOCKS5 settings to the desktop connection dialog
+- [ ] Add reconnect controls and connection diagnostics
+- [ ] Add GUI integration tests
+
+## Milestone 7: Classic scripting environment
+
+- [ ] Define the ZIRC script language and compatibility goals
+- [ ] Implement aliases and command expansion
+- [ ] Implement remote event handlers
+- [ ] Implement variables, identifiers and scoped state
+- [ ] Implement timers and scheduled actions
+- [ ] Implement popup menu definitions
+- [ ] Implement script loading, unloading and dependency handling
+- [ ] Implement a script editor with syntax highlighting and diagnostics
+- [ ] Add a permission manifest and sandbox for scripts
+- [ ] Add compatibility import and migration tools for historical script packs
+
+## Milestone 8: Classic IRC feature suite
+
+- [ ] CTCP tools and configurable responses
+- [ ] DCC chat and file transfer with explicit user approval
+- [ ] Ignore lists and configurable user protection
+- [ ] Channel and nickname tracking
+- [ ] Custom dialogs, windows, toolbars and popup menus
+- [ ] Sound and desktop notification events
+- [ ] Bot and addon framework with permission controls
+- [ ] Theme and layout customization
+
+## Milestone 9: Release and platform support
+
+- [ ] Linux desktop package
+- [ ] Windows desktop package
+- [ ] Portable configuration export and import
+- [ ] Script compatibility test corpus
+- [ ] Full end to end IRC network test suite
+- [ ] Independent security review
