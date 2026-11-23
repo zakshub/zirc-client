@@ -68,19 +68,19 @@ func main(){
 	if *username=="" {*username=*nick}
 	password:=""
 	if *proxyKeyring && *passwordEnv!="" { fmt.Fprintln(os.Stderr,"Choose either --proxy-password-keyring or --proxy-password-env, not both."); os.Exit(2) }
-	if *proxyKeyring { var err error; password,err=secrets.Lookup("proxy:"+*proxyUser); if err!=nil { fmt.Fprintln(os.Stderr,err); os.Exit(2) } }
+	if *proxyKeyring { if *proxyUser=="" { fmt.Fprintln(os.Stderr,"--proxy-password-keyring requires --proxy-user."); os.Exit(2) }; var err error; password,err=secrets.Lookup("proxy:"+*proxyUser); if err!=nil { fmt.Fprintln(os.Stderr,err); os.Exit(2) } }
 	if *passwordEnv!="" {
 		password=os.Getenv(*passwordEnv)
 		if password==""{fmt.Fprintln(os.Stderr,"The configured proxy password environment variable is empty or unavailable.");os.Exit(2)}
 	}
 	saslPassword:=""
 	if *saslKeyring && *saslPasswordEnv!="" { fmt.Fprintln(os.Stderr,"Choose either --sasl-password-keyring or --sasl-password-env, not both."); os.Exit(2) }
-	if *saslKeyring { var err error; saslPassword,err=secrets.Lookup("sasl:"+*saslUser); if err!=nil { fmt.Fprintln(os.Stderr,err); os.Exit(2) } }
+	if *saslKeyring { if *saslUser=="" { fmt.Fprintln(os.Stderr,"--sasl-password-keyring requires --sasl-user."); os.Exit(2) }; var err error; saslPassword,err=secrets.Lookup("sasl:"+*saslUser); if err!=nil { fmt.Fprintln(os.Stderr,err); os.Exit(2) } }
 	if *saslPasswordEnv!="" { saslPassword=os.Getenv(*saslPasswordEnv);if saslPassword==""{fmt.Fprintln(os.Stderr,"The configured SASL password environment variable is empty or unavailable.");os.Exit(2)} }
-	if (*saslUser=="")!=(saslPassword=="") { fmt.Fprintln(os.Stderr,"SASL requires both --sasl-user and --sasl-password-env.");os.Exit(2) }
+	if (*saslUser=="")!=(saslPassword=="") { fmt.Fprintln(os.Stderr,"SASL requires --sasl-user and either --sasl-password-env or --sasl-password-keyring.");os.Exit(2) }
 	if saslPassword!="" && !*tlsOn { fmt.Fprintln(os.Stderr,"SASL PLAIN requires TLS to protect credentials in transit.");os.Exit(2) }
 	if (*proxyUser=="")!=(password=="") {
-		fmt.Fprintln(os.Stderr,"SOCKS5 authentication requires both --proxy-user and --proxy-password-env.")
+		fmt.Fprintln(os.Stderr,"SOCKS5 authentication requires --proxy-user and either --proxy-password-env or --proxy-password-keyring.")
 		os.Exit(2)
 	}
 	if *proxy!="" && !strings.Contains(*proxy,":") {
