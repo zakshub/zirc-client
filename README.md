@@ -6,7 +6,7 @@ ZIRC connects to existing IRC networks. It does not operate an IRC network or se
 
 ## Implemented prototype capabilities
 
-- Full screen keyboard driven Linux TUI
+- Full screen keyboard driven Linux TUI with CJK, combining mark and joined emoji cell width handling
 - IRC registration, channel messages, private conversations and per channel buffers
 - Channel member list, topics, NAMES refresh, invites and MODE commands
 - TLS with certificate verification and TLS 1.2 minimum
