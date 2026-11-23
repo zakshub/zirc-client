@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 
+	"fyne.io/fyne/v2"
 	fyneapp "fyne.io/fyne/v2/app"
 	"github.com/zakshub/zirc-client/internal/desktop"
 )
@@ -21,11 +21,7 @@ func main() {
 
 	a := fyneapp.NewWithID("com.zakshub.zirc")
 	w := a.NewWindow("ZIRC")
-	w.Resize(fyneSize(1280, 820))
+	w.Resize(fyne.NewSize(1280, 820))
 	desktop.New(w).Show()
 	a.Run()
-}
-
-func fyneSize(width, height float32) fyne.Size {
-	return fyne.NewSize(width, height)
 }
