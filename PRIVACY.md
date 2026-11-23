@@ -20,17 +20,18 @@ Implemented routing modes:
 
 A Tor SOCKS5 endpoint can be configured by the user. ZIRC does not independently verify that a SOCKS5 endpoint is Tor. A network host cloak can reduce exposure to other IRC users, but it does not hide the source IP from IRC network operators.
 
-The connection status distinguishes encryption from routing. A TLS connection is not an anonymised connection. If the selected proxy is unavailable, ZIRC fails rather than falling back to a direct route.
+The connection status distinguishes encryption from routing. A TLS connection is not an anonymised connection. If the selected proxy is unavailable, ZIRC fails rather than falling back to a direct route. Automatic reconnect attempts reuse the same route.
 
 ## Credentials and local data
 
-- No chat history is persisted.
+- No chat history is persisted to disk.
+- Linux Secret Service keyring lookup is supported through secret-tool.
+- CLI commands can remove stored proxy and SASL secrets.
+- Environment variables remain supported as an alternative credential source and may be visible to privileged local processes.
 - No credentials are written to a ZIRC config file.
-- Proxy and SASL secrets are accepted through environment variables.
-- Environment variables are not equivalent to an OS keyring and may be visible to privileged local processes.
 - No telemetry or crash uploads are implemented.
 - No message logging is implemented.
-- OS keyring support and explicit secret lifecycle controls are not yet implemented.
+- Native macOS and Windows keyring integration is not implemented.
 
 ## Protocol attack surface
 
@@ -38,4 +39,5 @@ The connection status distinguishes encryption from routing. A TLS connection is
 - No automatic URL fetching, previews, scripts or remote content requests.
 - IRC messages and server numerics are treated as untrusted input.
 - IRC command output is bounded to protocol line limits.
-- Parser fuzz harnesses are included in the repository; sustained fuzz campaigns and independent review remain outstanding.
+- IRC line parser and formatter fuzz harnesses run short campaigns in CI.
+- Dedicated SOCKS5 fuzzing, longer fuzz campaigns and independent review remain outstanding.
