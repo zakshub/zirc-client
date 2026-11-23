@@ -167,7 +167,13 @@ func (c *Client) readLoop(){
 			c.emit(Event{Kind:"status",Text:label+" as "+c.cfg.Nick})
 			for _,ch:=range c.cfg.Channels{c.Send("JOIN",ch)}
 		case "PRIVMSG":if len(m.Params)>0{c.emit(Event{Kind:"message",Target:m.Params[0],Nick:nick,Text:m.Trailing})}
-		case "NOTICE","JOIN","PART","QUIT","ERROR":c.emit(Event{Kind:"notice",Text:raw})
+		case "JOIN":if len(m.Params)>0{c.emit(Event{Kind:"join",Target:m.Params[0],Nick:nick,Text:raw})}
+		case "PART":if len(m.Params)>0{c.emit(Event{Kind:"part",Target:m.Params[0],Nick:nick,Text:raw})}
+		case "QUIT":c.emit(Event{Kind:"quit",Nick:nick,Text:raw})
+		case "353":if len(m.Params)>2{c.emit(Event{Kind:"names",Target:m.Params[2],Text:m.Trailing})}
+		case "332":if len(m.Params)>1{c.emit(Event{Kind:"topic",Target:m.Params[1],Text:m.Trailing})}
+		case "TOPIC":if len(m.Params)>0{c.emit(Event{Kind:"topic",Target:m.Params[0],Text:m.Trailing})}
+		case "NOTICE","ERROR":c.emit(Event{Kind:"notice",Text:raw})
 		default:if strings.HasPrefix(m.Command,"4")||strings.HasPrefix(m.Command,"5"){c.emit(Event{Kind:"notice",Text:raw})}
 		}
 	}
