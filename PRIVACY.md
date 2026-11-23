@@ -18,6 +18,8 @@ Supported routing modes planned:
 - SOCKS5 proxy with remote DNS
 - Tor SOCKS5 endpoint
 
+A network host cloak can reduce exposure to other IRC users, but it does not hide the source IP from IRC network operators.
+
 The connection status must distinguish encryption from IP masking. A TLS connection is not an anonymised connection.
 
 ## Local data
