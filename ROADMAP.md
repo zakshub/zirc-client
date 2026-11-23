@@ -41,7 +41,7 @@
 - [ ] Desktop notifications
 - [x] Search within active in-memory conversation buffer\n- [ ] Persistent searchable history
 - [ ] Terminal display cell width handling for wide and combining glyphs
-- [ ] Automatic reconnect and connection diagnostics
+- [x] Bounded automatic reconnect with exponential backoff and same route enforcement\n- [ ] Detailed connection diagnostics and user controlled retry policy
 
 ## Milestone 5: Release engineering and assurance
 
