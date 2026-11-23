@@ -19,7 +19,7 @@ func Run(cfg irc.Config) error {
 	fmt.Println("\033[1;36mZIRC CLIENT\033[0m  |  Privacy-first terminal IRC")
 	fmt.Printf("Server: %s | Transport: ",cfg.Address)
 	if cfg.TLS {fmt.Println("TLS encrypted")} else {fmt.Println("\033[1;31mPLAINTEXT: your traffic is not encrypted\033[0m")}
-	fmt.Println("IP masking: NOT ACTIVE unless using a proxy, Tor, or a network cloak")
+	if cfg.Proxy!="" { fmt.Println("Routing: SOCKS5 proxy configured; origin IP is presented to the proxy, not directly to IRC server") } else { fmt.Println("\\033[1;31mRouting: DIRECT; IRC server can see your public IP unless it provides a cloak\\033[0m") }
 	fmt.Println("Commands: /join #channel  /nick name  /msg nick message  /quit")
 	fmt.Println(strings.Repeat("─",72))
 
