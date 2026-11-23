@@ -17,7 +17,7 @@ ZIRC connects to existing IRC networks. It does not operate an IRC network or se
 - Linux Secret Service keyring lookup and explicit secret deletion through secret-tool
 - Optional environment variable credential source
 - In memory search of the active conversation buffer
-- Session only mIRC style command aliases with positional argument expansion and bounded recursion
+- Persistent mIRC style command aliases with positional argument expansion and bounded recursion
 - Bounded automatic reconnect using the original configured route, with exponential backoff and no direct fallback
 - CJK, combining mark and common joined emoji terminal cell width handling
 - Short IRC parser fuzz campaigns in CI
@@ -93,7 +93,8 @@ Keyring integration currently targets Linux Secret Service. Environment variable
 ## TUI controls
 
 - Type a message and press Enter to send it to the active channel.
-- Tab cycles through the status view and known channel labels.
+- Tab completes commands, aliases, nicknames and channels when input is present. With an empty input line, Tab cycles through the status view and known channel labels.
+- Ctrl+P and Ctrl+N move backward and forward through the in memory command input history.
 - `/join #channel` joins a channel.
 - `/nick nickname` changes your nickname.
 - `/msg nickname message` or `/query nickname` opens a private conversation.
@@ -101,6 +102,7 @@ Keyring integration currently targets Linux Secret Service. Environment variable
 - `/topic [text]` reads or changes the active channel topic.
 - `/invite nickname` invites a user to the active channel.
 - `/mode [flags]` sends a channel MODE command.
+- Moderation: `/kick nickname [reason]`, `/ban mask`, `/unban mask`, `/op nickname`, `/deop nickname`, `/voice nickname`, `/devoice nickname`.
 - `/randomnick` requests a cryptographically random nickname.
 - `/search words` searches the active in memory conversation buffer. Results are not saved to disk.
 - `/whois nickname` requests user information from the server.
@@ -109,8 +111,10 @@ Keyring integration currently targets Linux Secret Service. Environment variable
 - `/away [message]` sets or clears your away status.
 - `/notice target message` sends an IRC NOTICE.
 - `/me action` sends a CTCP ACTION to the active channel.
-- `/alias name /command $1-` creates a session only command alias. `$1` through `$9` insert positional arguments, `$1-` inserts the remaining arguments, `$*` inserts all arguments, and `$` inserts a literal dollar sign.
+- `/alias name /command $1-` creates a persistent command alias saved under `~/.config/zirc/aliases.json` with private file permissions. `$1` through `$9` insert positional arguments, `$1-` inserts the remaining arguments, `$*` inserts all arguments, and `$` inserts a literal dollar sign.
 - `/aliases` lists aliases and `/unalias name` removes one. Alias expansion is limited to five nested levels and cannot execute shell commands or access local files.
+- `/kick nickname [reason]`, `/ban mask`, `/unban mask`, `/op nickname`, `/deop nickname`, `/voice nickname` and `/devoice nickname` send standard IRC moderation commands. Server permissions still apply.
+- Ctrl+P and Ctrl+N recall previous and next entered commands. Tab completes command names, aliases, nicknames and channels when the input line is not empty. With an empty input line, Tab switches views.
 - `/clear` clears the active buffer from the current session memory.
 - `/privacy` displays the current identity and route summary.
 - `/part` leaves the active channel.
