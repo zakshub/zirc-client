@@ -10,6 +10,7 @@ import (
 
 	"github.com/zakshub/zirc-client/internal/app"
 	"github.com/zakshub/zirc-client/internal/irc"
+	"github.com/zakshub/zirc-client/internal/secrets"
 )
 
 var version = "dev"
@@ -34,14 +35,30 @@ func main(){
 	proxy:=flag.String("proxy","","SOCKS5 proxy host:port; no direct fallback")
 	proxyUser:=flag.String("proxy-user","","SOCKS5 username")
 	passwordEnv:=flag.String("proxy-password-env","","Environment variable containing SOCKS5 password; never pass password as an argument")
+	proxyKeyring:=flag.Bool("proxy-password-keyring",false,"Read SOCKS5 password from the Linux desktop keyring")
+	forgetProxy:=flag.Bool("forget-proxy-password",false,"Remove the SOCKS5 password for --proxy-user from the Linux desktop keyring")
 	saslUser:=flag.String("sasl-user","","IRC SASL PLAIN account username")
 	saslPasswordEnv:=flag.String("sasl-password-env","","Environment variable containing SASL password; never pass password as an argument")
+	saslKeyring:=flag.Bool("sasl-password-keyring",false,"Read SASL password from the Linux desktop keyring")
+	forgetSASL:=flag.Bool("forget-sasl-password",false,"Remove the SASL password for --sasl-user from the Linux desktop keyring")
 	realname:=flag.String("realname","ZIRC User","IRC real name")
 	preview:=flag.Bool("identity-preview",false,"Print the connection identity and route before connecting")
 	showVersion:=flag.Bool("version",false,"Print ZIRC version")
 	flag.Var(&channels,"join","Channel to join; repeatable")
 	flag.Parse()
 	if *showVersion { fmt.Println("ZIRC",version); return }
+	if *forgetProxy {
+		if *proxyUser == "" { fmt.Fprintln(os.Stderr,"--forget-proxy-password requires --proxy-user."); os.Exit(2) }
+		if err:=secrets.Clear("proxy:"+*proxyUser); err!=nil { fmt.Fprintln(os.Stderr,err); os.Exit(1) }
+		fmt.Println("Removed SOCKS5 secret from the Linux desktop keyring.")
+		return
+	}
+	if *forgetSASL {
+		if *saslUser == "" { fmt.Fprintln(os.Stderr,"--forget-sasl-password requires --sasl-user."); os.Exit(2) }
+		if err:=secrets.Clear("sasl:"+*saslUser); err!=nil { fmt.Fprintln(os.Stderr,err); os.Exit(1) }
+		fmt.Println("Removed SASL secret from the Linux desktop keyring.")
+		return
+	}
 
 	if *random {
 		generated,err:=randomNick()
@@ -50,11 +67,15 @@ func main(){
 	}
 	if *username=="" {*username=*nick}
 	password:=""
+	if *proxyKeyring && *passwordEnv!="" { fmt.Fprintln(os.Stderr,"Choose either --proxy-password-keyring or --proxy-password-env, not both."); os.Exit(2) }
+	if *proxyKeyring { var err error; password,err=secrets.Lookup("proxy:"+*proxyUser); if err!=nil { fmt.Fprintln(os.Stderr,err); os.Exit(2) } }
 	if *passwordEnv!="" {
 		password=os.Getenv(*passwordEnv)
 		if password==""{fmt.Fprintln(os.Stderr,"The configured proxy password environment variable is empty or unavailable.");os.Exit(2)}
 	}
 	saslPassword:=""
+	if *saslKeyring && *saslPasswordEnv!="" { fmt.Fprintln(os.Stderr,"Choose either --sasl-password-keyring or --sasl-password-env, not both."); os.Exit(2) }
+	if *saslKeyring { var err error; saslPassword,err=secrets.Lookup("sasl:"+*saslUser); if err!=nil { fmt.Fprintln(os.Stderr,err); os.Exit(2) } }
 	if *saslPasswordEnv!="" { saslPassword=os.Getenv(*saslPasswordEnv);if saslPassword==""{fmt.Fprintln(os.Stderr,"The configured SASL password environment variable is empty or unavailable.");os.Exit(2)} }
 	if (*saslUser=="")!=(saslPassword=="") { fmt.Fprintln(os.Stderr,"SASL requires both --sasl-user and --sasl-password-env.");os.Exit(2) }
 	if saslPassword!="" && !*tlsOn { fmt.Fprintln(os.Stderr,"SASL PLAIN requires TLS to protect credentials in transit.");os.Exit(2) }
