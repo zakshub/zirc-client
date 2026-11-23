@@ -194,7 +194,7 @@ func (c *Client) handleCAP(m Message) {
 	}
 }
 func (c *Client) sendSASLPlain() {
-	payload:=base64.StdEncoding.EncodeToString([]byte(c.cfg.SASLUser+"\x00"+c.cfg.SASLUser+"\x00"+c.cfg.SASLPass))
+	payload:=base64.StdEncoding.EncodeToString([]byte("\x00"+c.cfg.SASLUser+"\x00"+c.cfg.SASLPass))
 	for len(payload)>400 { c.Send("AUTHENTICATE",payload[:400]);payload=payload[400:] }
 	c.Send("AUTHENTICATE",payload)
 	if len(payload)==0 || len(payload)%400==0 { c.Send("AUTHENTICATE","+") }
