@@ -1,6 +1,6 @@
 # ZIRC Client
 
-Privacy conscious, terminal native IRC client for Linux.
+A classic style, programmable IRC client in active development. ZIRC is being built as a desktop first application with a shared IRC engine and a companion terminal interface.
 
 ZIRC connects to existing IRC networks. It does not operate an IRC network or server.
 
@@ -38,11 +38,32 @@ When a proxy is selected, ZIRC fails closed if the proxy connection fails. Autom
 
 Requires Go 1.23 or newer.
 
+Terminal client:
+
 ```bash
 go test -race ./...
 go vet ./...
 go build -trimpath -o zirc ./cmd/zirc
 ```
+
+### Linux desktop client
+
+The desktop client uses Fyne. On Linux, install the native build dependencies first:
+
+```bash
+sudo apt update
+sudo apt install -y gcc libgl1-mesa-dev xorg-dev
+```
+
+Build and launch the desktop application:
+
+```bash
+go mod tidy
+go build -trimpath -o zirc-desktop ./cmd/zirc-desktop
+./zirc-desktop
+```
+
+The initial desktop workspace provides a server connection dialog, server and channel navigation, conversation transcript, nickname list, message composer, and common IRC commands. It currently supports one active network connection. Multiple simultaneous networks, the complete scripting language, script editor, popup customization, DCC, plugin management, and the remaining classic client features are still under development.
 
 ## Connect
 
@@ -124,7 +145,13 @@ Keyring integration currently targets Linux Secret Service. Environment variable
 ## Not yet implemented
 
 - Multiple simultaneous IRC networks
-- Desktop notifications
+- Complete mIRC style scripting language, remote event handlers, popup menus, identifiers, variables, timers and script editor
+- Script loading, unloading, debugging and compatibility import
+- Custom dialogs, custom windows, toolbar and popup customization
+- Desktop notifications and sound event configuration
+- DCC chat and file transfer
+- CTCP utility suite
+- Addon and plugin manager
 - Dedicated interactive privacy settings screen
 - Independent Tor route verification and automated DNS or connection leak tests
 - Optional encrypted persistent history
