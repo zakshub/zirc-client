@@ -98,8 +98,8 @@ func (m *model)handle(e irc.Event){
 func appendUnique(xs []string,s string)[]string{if s==""||contains(xs,s){return xs};return append(xs,s)}
 func contains(xs []string,s string)bool{for _,x:=range xs{if x==s{return true}};return false}
 func (m *model)removeUser(ch,nick string){xs:=m.users[ch];out:=xs[:0];for _,x:=range xs{if x!=nick{out=append(out,x)}};m.users[ch]=out}
-func (m *model)key(b byte)bool{
-	switch b{
+func (m *model)key(r rune)bool{
+	switch r{
 	case 3:return true
 	case 13:
 		s:=strings.TrimSpace(m.input);m.input=""
