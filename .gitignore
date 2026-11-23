@@ -8,3 +8,4 @@ zirc
 config.local.*
 .DS_Store
 dist/
+zirc-desktop
