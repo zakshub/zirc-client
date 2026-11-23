@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bufio"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"unicode/utf8"
 
 	"github.com/zakshub/zirc-client/internal/irc"
 )
@@ -39,14 +41,14 @@ func Run(cfg irc.Config) error {
 	if cfg.Proxy!="" { m.status+=" | SOCKS5 proxy configured; Tor not independently verified" } else { m.status+=" | DIRECT ROUTE: IRC server sees your public IP" }
 	fmt.Print("\033[?1049h\033[?25l")
 	defer fmt.Print("\033[?25h\033[?1049l")
-	keys:=make(chan byte,128)
-	go func(){buf:=make([]byte,1);for{n,e:=os.Stdin.Read(buf);if e!=nil{close(keys);return};if n>0{keys<-buf[0]}}}()
+	keys:=make(chan rune,128)
+	go func(){reader:=bufio.NewReader(os.Stdin);for{r,_,e:=reader.ReadRune();if e!=nil{close(keys);return};keys<-r}}()
 	sig:=make(chan os.Signal,1);signal.Notify(sig,os.Interrupt,syscall.SIGTERM);defer signal.Stop(sig)
 	tick:=time.NewTicker(100*time.Millisecond);defer tick.Stop()
 	for {
 		select {
 		case ev:=<-client.Events():m.handle(ev)
-		case b,ok:=<-keys:if !ok{return nil};if m.key(b){return nil}
+		case r,ok:=<-keys:if !ok{return nil};if m.key(r){return nil}
 		case <-sig:return nil
 		case <-client.Done():m.status="Disconnected";m.add("status","* Disconnected");m.draw();return nil
 		case <-tick.C:m.draw()
@@ -102,10 +104,10 @@ func (m *model)key(b byte)bool{
 	case 13:
 		s:=strings.TrimSpace(m.input);m.input=""
 		if s!=""{m.command(s)}
-	case 8,127:if len(m.input)>0{m.input=m.input[:len(m.input)-1]}
+	case 8,127:if len(m.input)>0{runes:=[]rune(m.input);m.input=string(runes[:len(runes)-1])}
 	case 9:if len(m.channels)>0{for i,ch:=range m.channels{if ch==m.active{m.active=m.channels[(i+1)%len(m.channels)];m.offset=0;break}}}
 	case 27:
-	default:if b>=32&&b<127{m.input+=string(b)}
+	default:if r>=32&&r!=127&&r!=27{m.input+=string(r)}
 	}
 	return false
 }
@@ -169,7 +171,7 @@ func (m *model)draw(){
 			}
 			b.WriteString("\033[38;5;240m│\033[0m")
 		}
-		idx:=start+i;if idx<end{line:=lines[idx];if len(line)>bodyW{line=line[:bodyW]};b.WriteString(line)}
+		idx:=start+i;if idx<end{line:=lines[idx];if utf8.RuneCountInString(line)>bodyW{line=string([]rune(line)[:bodyW])};b.WriteString(line)}
 		b.WriteString("\033[K\n")
 	}
 	b.WriteString("\033[38;5;240m"+strings.Repeat("─",w)+"\033[0m\n")
@@ -177,5 +179,5 @@ func (m *model)draw(){
 	b.WriteString("\033[38;5;245m Tab: switch view  /help: commands  Ctrl+C: quit\033[0m")
 	fmt.Print(b.String())
 }
-func pad(s string,n int)string{if len(s)>n{return s[:n]};return s+strings.Repeat(" ",n-len(s))}
+func pad(s string,n int)string{r:=[]rune(s);if len(r)>n{return string(r[:n])};return s+strings.Repeat(" ",n-len(r))}
 func max(a,b int)int{if a>b{return a};return b}
