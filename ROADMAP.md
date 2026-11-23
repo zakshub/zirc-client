@@ -38,9 +38,10 @@
 ## Milestone 4: Full IRC usability
 
 - [ ] Multiple network connections
-- [ ] Channel and user list panels
-- [ ] Topics, modes, invites and notifications
-- [ ] Searchable history
+- [x] Channel and user list panels
+- [x] Topics, modes and invites
+- [ ] Desktop notifications
+- [ ] Searchable in-memory history
 - [ ] Unicode-aware terminal editing and rendering
 - [ ] Reconnect policy and connection diagnostics
 
