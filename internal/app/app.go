@@ -26,6 +26,7 @@ type model struct {
 	input string
 	status string
 	offset int
+	quitting bool
 }
 
 func Run(cfg irc.Config) error {
@@ -35,7 +36,7 @@ func Run(cfg irc.Config) error {
 	defer state.restore(int(os.Stdin.Fd()))
 	client:=irc.NewClient(cfg)
 	if err:=client.Connect();err!=nil { return err }
-	defer client.Close()
+	defer func(){ if client!=nil { client.Close() } }()
 	m:=&model{client:client,identity:cfg,active:"status",channels:[]string{"status"},lines:map[string][]string{"status":{}},users:map[string][]string{},topics:map[string]string{},status:"Connecting"}
 	if cfg.TLS { m.status="TLS enabled" }
 	if cfg.Proxy!="" { m.status+=" | SOCKS5 proxy configured; Tor not independently verified" } else { m.status+=" | DIRECT ROUTE: IRC server sees your public IP" }
@@ -45,12 +46,46 @@ func Run(cfg irc.Config) error {
 	go func(){reader:=bufio.NewReader(os.Stdin);for{r,_,e:=reader.ReadRune();if e!=nil{close(keys);return};keys<-r}}()
 	sig:=make(chan os.Signal,1);signal.Notify(sig,os.Interrupt,syscall.SIGTERM);defer signal.Stop(sig)
 	tick:=time.NewTicker(100*time.Millisecond);defer tick.Stop()
+	clientEvents,clientDone:=client.Events(),client.Done()
+	var reconnectTimer *time.Timer
+	var reconnectC <-chan time.Time
+	attempt:=0
+	scheduleReconnect:=func() bool {
+		attempt++
+		if attempt>5 { m.status="Reconnect attempts exhausted. Use /quit and start ZIRC again."; m.add("status","! Automatic reconnect stopped after five attempts"); return false }
+		delay:=reconnectDelay(attempt)
+		m.status=fmt.Sprintf("Disconnected. Retrying through the same configured route in %s (%d/5)",delay,attempt)
+		m.add("status","* "+m.status)
+		reconnectTimer=time.NewTimer(delay)
+		reconnectC=reconnectTimer.C
+		return true
+	}
 	for {
 		select {
-		case ev:=<-client.Events():m.handle(ev)
+		case ev:=<-clientEvents:m.handle(ev)
 		case r,ok:=<-keys:if !ok{return nil};if m.key(r){return nil}
 		case <-sig:return nil
-		case <-client.Done():m.status="Disconnected";m.add("status","* Disconnected");m.draw();return nil
+		case <-clientDone:
+			clientEvents=nil;clientDone=nil
+			m.add("status","* Connection lost")
+			if m.quitting { return nil }
+			if !scheduleReconnect(){m.draw();return nil}
+		case <-reconnectC:
+			reconnectC=nil
+			if reconnectTimer!=nil { reconnectTimer=nil }
+			cfg.Nick=m.identity.Nick
+			cfg.Channels=channelTargets(m.channels)
+			next:=irc.NewClient(cfg)
+			if err:=next.Connect();err!=nil {
+				m.add("status","! Reconnect failed: "+err.Error())
+				if !scheduleReconnect(){m.draw();return nil}
+			} else {
+				client=next;m.client=next
+				clientEvents,clientDone=next.Events(),next.Done()
+				attempt=0
+				m.status="Reconnected through the configured route"
+				m.add("status","* "+m.status)
+			}
 		case <-tick.C:m.draw()
 		}
 	}
@@ -115,7 +150,7 @@ func (m *model)command(s string){
 	if strings.HasPrefix(s,"/"){
 		p:=strings.Fields(s);if len(p)==0{return}
 		switch strings.ToLower(p[0]){
-		case "/quit":m.client.Close()
+		case "/quit":m.quitting=true;m.client.Close()
 		case "/join":if len(p)>1{m.client.Send("JOIN",p[1]);m.ensureChannel(p[1]);m.active=p[1]}
 		case "/nick":if len(p)>1{m.client.Send("NICK",p[1]);m.identity.Nick=p[1]}
 		case "/randomnick":
@@ -200,4 +235,20 @@ func searchLines(lines []string, query string, limit int) []string {
 		}
 	}
 	return matches
+}
+
+func reconnectDelay(attempt int) time.Duration {
+	if attempt < 1 { return 0 }
+	if attempt > 5 { attempt = 5 }
+	return time.Duration(1<<uint(attempt-1)) * time.Second
+}
+
+func channelTargets(views []string) []string {
+	var channels []string
+	for _, view := range views {
+		if len(view)>0 && strings.ContainsRune("#&+!",rune(view[0])) {
+			channels=append(channels,view)
+		}
+	}
+	return channels
 }
