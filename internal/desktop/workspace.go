@@ -9,8 +9,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
-	"fyne.io/fyne/v2/theme"
-	"fyne.io/fyne/v2/widget"
+		"fyne.io/fyne/v2/widget"
 	"github.com/zakshub/zirc-client/internal/irc"
 )
 
@@ -60,8 +59,8 @@ func (d *workspace) build() {
 	title.TextStyle = fyne.TextStyle{Bold: true}
 	subtitle := widget.NewLabel("Classic IRC workspace")
 	subtitle.Importance = widget.LowImportance
-	connect := widget.NewButtonWithIcon("Connect", theme.LoginIcon(), d.showConnect)
-	disconnect := widget.NewButtonWithIcon("Disconnect", theme.LogoutIcon(), d.disconnect)
+	connect := widget.NewButton("Connect", d.showConnect)
+	disconnect := widget.NewButton("Disconnect", d.disconnect)
 	disconnect.Disable()
 	d.status = widget.NewLabel("Disconnected")
 	d.status.Importance = widget.LowImportance
@@ -95,7 +94,7 @@ func (d *workspace) build() {
 	d.composer.OnSubmitted = func(value string) {
 		d.submit(value)
 	}
-	send := widget.NewButtonWithIcon("Send", theme.MailSendIcon(), func() {
+	send := widget.NewButton("Send", func() {
 		d.submit(d.composer.Text)
 	})
 	input := container.NewBorder(nil, nil, nil, send, d.composer)
