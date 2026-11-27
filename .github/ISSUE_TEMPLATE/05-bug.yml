@@ -1,0 +1,61 @@
+name: "05. Bug Report"
+description: "Report broken behavior, crashes, security flaws, or failed Acceptance Criteria."
+title: "BUG: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Bugs are tracked separately from Features and Tasks** so defects stay visible in the **Bugs and Risks** board view.
+        *(Never paste API keys, passwords, or private personal data into a bug report.)*
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity / Priority
+      options:
+        - "P1-High (Major feature broken, no easy workaround)"
+        - "P0-Critical (Crash, data loss, security leak, blocks release)"
+        - "P2-Medium (Issue with workaround)"
+        - "P3-Low (Minor cosmetic or rare edge case)"
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: What Went Wrong (Plain English)
+      description: Describe the broken behavior clearly.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Exact steps or commands needed to trigger the bug.
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: expected_vs_actual
+    attributes:
+      label: Expected vs. Actual Behavior
+      value: |
+        **Expected:**
+        **Actual:**
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs / Error Output / Environment (Redact Secrets!)
+      placeholder: OS, browser/runtime version, commit hash, and sanitized error output.
+  - type: checkboxes
+    id: regression
+    attributes:
+      label: Fix Verification Checklist
+      options:
+        - label: Root cause identified and fixed on a short-lived `fix/` branch
+        - label: Automated regression test added (for P0/P1 bugs)
+        - label: Full test suite verified passing after fix

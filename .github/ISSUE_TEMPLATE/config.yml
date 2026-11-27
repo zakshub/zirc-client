@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Project Operating System Standards
+    url: https://github.com/zakshub/project-os
+    about: Read lifecycle stages, issue hierarchy, and checklists in zakshub/project-os.

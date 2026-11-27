@@ -1,0 +1,46 @@
+name: "03. User Story"
+description: "One specific user need and outcome inside a Feature."
+title: "STORY: "
+labels: ["story"]
+body:
+  - type: input
+    id: parent
+    attributes:
+      label: Parent Feature / Epic
+      placeholder: "e.g., #4"
+  - type: textarea
+    id: story
+    attributes:
+      label: User Story
+      description: Describe who needs this, what they want to do, and why.
+      value: |
+        **As a** [type of user],
+        **I want** [action or capability],
+        **So that** [clear benefit or outcome].
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: Step-by-step conditions we can verify to accept this story.
+      value: |
+        - [ ] Given ..., when ..., then ...
+        - [ ] Invalid input or failure state shows a clear message
+        - [ ] Verified with tests or reproducible check
+    validations:
+      required: true
+  - type: textarea
+    id: ux_notes
+    attributes:
+      label: UX / Accessibility / Privacy Notes (Optional)
+      description: Mention mobile layout, Urdu RTL, `zakshub/designer` references, or privacy boundaries if relevant.
+  - type: dropdown
+    id: estimate
+    attributes:
+      label: Estimate (T-Shirt Size)
+      options:
+        - "S (Small — a few hours)"
+        - "XS (Tiny — under 1 hour)"
+        - "M (Medium — 1–2 days)"
+        - "L (Large — 3–5 days — consider splitting)"
