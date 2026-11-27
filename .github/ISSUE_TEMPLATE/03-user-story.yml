@@ -40,7 +40,8 @@ body:
     attributes:
       label: Estimate (T-Shirt Size)
       options:
-        - "S (Small — a few hours)"
         - "XS (Tiny — under 1 hour)"
+        - "S (Small — 2–4 hours)"
         - "M (Medium — 1–2 days)"
-        - "L (Large — 3–5 days — consider splitting)"
+        - "L (Large — 3–5 days)"
+        - "XL (Extra Large — over 1 week — consider splitting)"

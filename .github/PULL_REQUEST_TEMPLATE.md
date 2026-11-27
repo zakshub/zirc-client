@@ -29,5 +29,5 @@
 - [ ] Scope is focused on the linked issue (no unrelated changes)
 - [ ] No secrets, API keys, tokens, or real personal data added
 - [ ] Existing documentation and user history preserved
-- [ ] Relevant documentation updated (`README.md`, `DEVELOPMENT.md`, `PROJECT_STATUS.md`, or ADRs)
+- [ ] Relevant project documentation, roadmap/status records, or decision logs updated
 - [ ] No production deployment or irreversible database change executed without explicit approval

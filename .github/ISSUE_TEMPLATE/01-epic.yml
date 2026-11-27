@@ -65,7 +65,7 @@ body:
       value: |
         - [ ] All child Features/Tasks completed and merged to `main`
         - [ ] Automated tests and QA checks verified passing
-        - [ ] Documentation and `PROJECT_STATUS.md` updated
+        - [ ] Project documentation and roadmap/status records updated
         - [ ] Owner review completed
     validations:
       required: true
