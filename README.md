@@ -168,3 +168,10 @@ Read [SECURITY.md](SECURITY.md), [PRIVACY.md](PRIVACY.md), and [THREAT_MODEL.md]
 ## License
 
 MIT.
+
+---
+
+## Project Operating System
+
+For public contributor guidance, local verification commands, and AI assistant rules, see [AGENTS.md](./AGENTS.md) and the repository documentation.  
+Internal maintainer governance and portfolio tracking use the owner's private `zakshub/project-os` repository and private `Zakshub Portfolio` board (owner access only).

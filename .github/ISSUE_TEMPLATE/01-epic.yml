@@ -1,0 +1,76 @@
+name: "01. Epic"
+description: "Large multi-feature initiative or major milestone (Note: a Release is NOT an Epic)."
+title: "EPIC: "
+labels: ["epic"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use an **Epic** for a major goal made up of multiple Features, User Stories, or Tasks.
+        *(Do not use an Epic for a version Release like `v1.0.0`—use the `Release` field and GitHub Releases instead.)*
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal & Plain-English Outcome
+      description: What problem does this Epic solve, and why does it matter now?
+      placeholder: Explain the outcome in 2–4 simple sentences.
+    validations:
+      required: true
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Lifecycle Phase
+      options:
+        - "01-Idea"
+        - "02-Research"
+        - "03-Definition"
+        - "04-Requirements"
+        - "05-Design"
+        - "06-Architecture"
+        - "07-DevPrep"
+        - "08-Implementation"
+        - "09-QA"
+        - "10-Staging"
+        - "11-Production"
+        - "12-Monitoring"
+        - "13-Maintenance"
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: In Scope vs. Out of Scope
+      description: Clearly separate what this Epic includes from what is deferred.
+      value: |
+        **In Scope:**
+        -
+
+        **Out of Scope (Deferred):**
+        -
+    validations:
+      required: true
+  - type: textarea
+    id: child_items
+    attributes:
+      label: Child Features / Stories / Tasks
+      description: Link child issue numbers as they are created.
+      placeholder: |
+        - [ ] #__ FEATURE: ...
+        - [ ] #__ TASK: ...
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Completion Criteria (Definition of Done)
+      description: What measurable evidence proves this Epic is finished?
+      value: |
+        - [ ] All child Features/Tasks completed and merged to `main`
+        - [ ] Automated tests and QA checks verified passing
+        - [ ] Project documentation and roadmap/status records updated
+        - [ ] Owner review completed
+    validations:
+      required: true
+  - type: input
+    id: release
+    attributes:
+      label: Target Release (Optional)
+      placeholder: "e.g., v0.1.0, v1.0.0, or M4"

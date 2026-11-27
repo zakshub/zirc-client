@@ -1,0 +1,47 @@
+name: "04. Task"
+description: "A concrete engineering, research, design, testing, or documentation step (with optional Subtasks)."
+title: "TASK: "
+labels: ["task"]
+body:
+  - type: input
+    id: parent
+    attributes:
+      label: Parent Epic / Feature / Story
+      placeholder: "e.g., #2"
+  - type: textarea
+    id: description
+    attributes:
+      label: What Needs to Be Done (Plain English)
+      description: State the exact concrete deliverable clearly.
+    validations:
+      required: true
+  - type: textarea
+    id: subtasks
+    attributes:
+      label: Subtasks (Optional Checklist)
+      description: Break smaller steps into Subtasks here.
+      placeholder: |
+        - [ ] Subtask 1
+        - [ ] Subtask 2
+  - type: textarea
+    id: verification
+    attributes:
+      label: Acceptance Criteria & Verification Method
+      description: Exact command, test, or check proving this Task is complete.
+      value: |
+        - [ ] Deliverable implemented/updated cleanly on a short-lived branch
+        - [ ] Verification command/test run and reported passing: `<command>`
+        - [ ] Docs updated if behavior changed
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - "P2-Medium"
+        - "P1-High"
+        - "P0-Critical"
+        - "P3-Low"
+    validations:
+      required: true

@@ -1,0 +1,53 @@
+name: "02. Feature"
+description: "A distinct user-facing capability belonging to an Epic."
+title: "FEATURE: "
+labels: ["feature"]
+body:
+  - type: input
+    id: parent_epic
+    attributes:
+      label: Parent Epic
+      description: Link the parent Epic issue number (if applicable).
+      placeholder: "e.g., #1"
+  - type: textarea
+    id: summary
+    attributes:
+      label: Feature Summary (Plain English)
+      description: What can a user do once this feature exists?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: Concrete, testable conditions required before marking this Feature Done.
+      value: |
+        - [ ] Core flow works end-to-end as described
+        - [ ] Error and empty states handled cleanly
+        - [ ] Automated tests cover happy path and edge cases
+        - [ ] Documentation updated
+    validations:
+      required: true
+  - type: textarea
+    id: stories
+    attributes:
+      label: Linked User Stories / Tasks
+      placeholder: |
+        - [ ] #__ STORY: ...
+        - [ ] #__ TASK: ...
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - "P1-High"
+        - "P2-Medium"
+        - "P3-Low"
+        - "P0-Critical"
+    validations:
+      required: true
+  - type: input
+    id: release
+    attributes:
+      label: Target Release (Optional)
+      placeholder: "e.g., v1.0.0"

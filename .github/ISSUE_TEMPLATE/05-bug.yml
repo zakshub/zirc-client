@@ -1,0 +1,63 @@
+name: "05. Bug Report"
+description: "Report broken behavior, crashes, or failed Acceptance Criteria (do NOT disclose security vulnerabilities here — read SECURITY.md first)."
+title: "BUG: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Security Notice:** Do **NOT** disclose exploitable security vulnerabilities in public GitHub issues. Read **[SECURITY.md](https://github.com/zakshub/zirc-client/blob/main/SECURITY.md)** first and report vulnerabilities privately to the repository owner.
+
+        **Bugs are tracked separately from Features and Tasks.** For maintainers linking a bug to **Zakshub Portfolio**, set the **`Risk`** field (`Low` for P3, `Medium` for P2, `High` for P1, `Critical` for P0) so the bug appears automatically in the **Bugs and Risks** view.
+        *(Never paste IRC credentials, API keys, passwords, or private chat logs into a bug report.)*
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity / Priority
+      options:
+        - "P1-High (Major feature broken, no easy workaround)"
+        - "P0-Critical (Crash, data loss, security leak, blocks release)"
+        - "P2-Medium (Issue with workaround)"
+        - "P3-Low (Minor cosmetic or rare edge case)"
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: What Went Wrong (Plain English)
+      description: Describe the broken behavior clearly.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Exact steps or commands needed to trigger the bug.
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: expected_vs_actual
+    attributes:
+      label: Expected vs. Actual Behavior
+      value: |
+        **Expected:**
+        **Actual:**
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs / Error Output / Environment (Redact Secrets!)
+      placeholder: OS, browser/runtime version, commit hash, and sanitized error output.
+  - type: checkboxes
+    id: regression
+    attributes:
+      label: Fix Verification Checklist
+      options:
+        - label: Root cause identified and fixed on a short-lived `fix/` branch
+        - label: Automated regression test added (for P0/P1 bugs)
+        - label: Full test suite verified passing after fix
